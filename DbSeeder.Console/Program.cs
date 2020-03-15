@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.IO;
 
 /// <summary>
 /// This is the entry class to check if args is given - to process the rules
@@ -14,6 +14,33 @@ public class Program
 			PrintHelp();
 			Environment.Exit(160);
 		}
+
+		// Check if -c flag is used with a file with all details
+		var cFlagIndex = Array.IndexOf(args, "-c");
+		if (cFlagIndex != -1)
+		{
+			// Retrieve the name of Complex file
+			var complexFileName = args[cFlagIndex + 1];
+			// Create a FileInfo and check if File exists
+			var complexFile = new FileInfo(complexFileName);
+			// If FileInfo does not exists - try to create it with full path
+			if (!complexFile.Exists)
+			{
+				var fullPath = Path.Combine(Environment.CurrentDirectory, complexFileName);
+				complexFile = new FileInfo(fullPath);
+			}
+			// If FileInfo cannot be retrieved, exit with invalid argument error code.
+			if (!complexFile.Exists)
+			{
+				Console.WriteLine("Complex file not found! {0,20}" , complexFileName);
+				Environment.Exit(160);
+			}
+		} 
+		else 
+		{
+			// TODO: iterate through args - and seed data to Samples Model
+		}
+		
 	}
 
 	private static void PrintHelp()
@@ -50,7 +77,7 @@ public class Program
 		Console.WriteLine("\tNote - Default is POST");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1} \t {2, 20}", "-m", "PATCH", "HttpRequest will be PATCH");
 
-		Console.WriteLine("\n{0,-5} : {1}", "-c", "Receive a full file with all details. If -c argument is given, others are ignored.");
+		Console.WriteLine("\n{0,-5} : {1}", "-c", "Receive a file with all details. If -c argument is given, others are ignored.");
 		Console.WriteLine("\tNote - First line should contain the URL as explained in -u flag");
 		Console.WriteLine("\tNote - Second line should contain all the keys in order, in which values will be passed. uriParams must be included as well!");
 		Console.WriteLine("\tNote - Third line should contain the type of keys. uriParams MUST be string.");
