@@ -20,7 +20,9 @@ public class Program
 	{
 		Console.WriteLine("DbSeeder Console Help");
 		Console.WriteLine("\nFollowing arguments are possible");
-		Console.WriteLine("{0,-5} : {1}", "-e", "Stands for the sample file. Must be followed by a filename.");
+		Console.WriteLine("\n{0,-5} : {1}", "-e", "Stands for the name of the file with the sample data. Must be followed by a filename.");
+		Console.WriteLine("\tNote - The first line of the file should represent respective keys - in order which values are passed.");
+		Console.WriteLine("\t\turiParam1,uriParam2,firstname,lastname\n\t\tgym,users,John,Doe\n\t\tgym,users,Hulk,Hogan");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1}", "-e", "examples.csv");
 
 		Console.WriteLine("\n{0,-5} : {1}", "-u", "Stands for the URL to be triggered");
@@ -44,7 +46,23 @@ public class Program
 		Console.WriteLine("\tExample: DbSeeder.exe {0} {1} \t {2,20}", "-s", "tab", "The word of tab will be used as separator.");
 		Console.WriteLine("\tExample: DbSeeder.exe {0} {1} \t {2,20}", "-s", "!t", "Tabs will be used as separator.");
 
-		Console.WriteLine("\n{0, -5} : {1}", "-m", "To overwride the default method to be used. Default is POST");
+		Console.WriteLine("\n{0, -5} : {1}", "-m", "To overwride the default method to be used.");
+		Console.WriteLine("\tNote - Default is POST");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1} \t {2, 20}", "-m", "PATCH", "HttpRequest will be PATCH");
+
+		Console.WriteLine("\n{0,-5} : {1}", "-c", "Receive a full file with all details. If -c argument is given, others are ignored.");
+		Console.WriteLine("\tNote - First line should contain the URL as explained in -u flag");
+		Console.WriteLine("\tNote - Second line should contain all the keys in order, in which values will be passed. uriParams must be included as well!");
+		Console.WriteLine("\tNote - Third line should contain the type of keys. uriParams MUST be string.");
+		Console.WriteLine("\tNote - As of fourth line, sample data is required.");
+		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1}", "-c", "fullConfigFile.csv");
+		Console.WriteLine("\tFile content as:");
+		Console.WriteLine("\t\t{0}\n\t\t{1}\n\t\t{2}\n\t\t{3}\n\t\t{4}", 
+			"https://localhost:5001/myApi/endPoint/{uriParam1}/{uriParam2}", 
+			"uriParam1,uriParam2,firstName,lastName", 
+			"string,string,string,string", 
+			"gym,users,John,Doe", 
+			"gym,users,Hulk,Hogan");
+
 	}
 }
