@@ -54,6 +54,7 @@ public class Program
 
 		Console.WriteLine("\n{0,-5} : {1}", "-u", "Stands for the URL to be triggered");
 		Console.WriteLine("\tNote - uriParameters must match the name of the keys ");
+		Console.WriteLine("\tNote - uriParameters must be placed between curly braces: {}");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1}", "-u", "https://localhost:5001/myApi/endPoint/{uriParam1}/{uriParam2}");
 		Console.WriteLine("\tExample: DbSeeder.exe {0} {1}", "-u", "https://55.146.23.33/myApi/endPoint/{uriParam1}/{uriParam2}");
 
