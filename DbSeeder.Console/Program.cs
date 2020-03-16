@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DbSeeder.Model.Models;
+using System;
 using System.IO;
 
 /// <summary>
@@ -8,6 +9,7 @@ public class Program
 {
 	public static void Main(string[] args)
 	{
+		SeedDetails seedDetails = new SeedDetails();
 		// Check if arguments are provided
 		if (args.Length == 0)
 		{
@@ -35,10 +37,39 @@ public class Program
 				Console.WriteLine("Complex file not found! {0,20}" , complexFileName);
 				Environment.Exit(160);
 			}
-		} 
+
+			// Setup default separator according to filetype
+			switch (complexFile.Extension)
+			{
+				case "txt":
+					seedDetails.Separator = " ";
+					break;
+				case "csv":
+					seedDetails.Separator = ",";
+					break;
+				case "tsv":
+					seedDetails.Separator = "\t";
+					break;
+				default:
+					break;
+			}
+
+			// Read file line by line and feed seedDetails
+			// 1st line for URL
+				// find { and } - add content in between to seedDetails.UrlKeys --> repeat with updated index
+			// 2nd line for keys - add each to seedDetails.JsonKeys.Keys
+			// 3rd line for key types -- add each type to seedDetails.JsonKeys.Values
+			// 4th line for separator -- add to seedDetails.Separator
+			// As of 5th line, by line:
+				// Create an instance of SeedItem
+				// split line by Separator
+				// iterate through array - 
+					// if i < UrlKeys.length and string replace with values from the line -- save updated URL to seedItem.Uri
+					// else , get JsonKeys[i-UrlKeys.length] - and add the current value to seedItem.JsonParameters as key-value pair
+		}
 		else 
 		{
-			// TODO: iterate through args - and seed data to Samples Model
+			// TODO: iterate through args - and seed data to SeedDetails
 		}
 		
 	}
@@ -62,30 +93,36 @@ public class Program
 		Console.WriteLine("\tNote - Default type is string.");
 		Console.WriteLine("\tNote - Default separator is comma");
 		Console.WriteLine("\tNote - Key names must be unique!");
-		Console.WriteLine("\t\tExample: \n\t\t\turiParam1, string\n\t\t\turiParam2, int");
-		Console.WriteLine("\t\tPossible key tpes are:" );
+		Console.WriteLine("\t\tPossible key types are:" );
 		Console.WriteLine("\t\t\tstring, int, bol");
+		Console.WriteLine("\t\tExample: \n\t\t\turiParam1, string\n\t\t\turiParam2, string,\n\t\t\tJsonParam1, int");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1}", "-k", "keys.csv");
 
 		Console.WriteLine("\n{0, -5} : {1}", "-s", "To overwrite default separator.");
 		Console.WriteLine("\tNote - there are predefined, common separators you can use - or specify your own keyword for it.");
-		Console.WriteLine("\t\tExample:\n\t\t\t{0,-5} : {1}\n\t\t\t{2,-5} : {3}\n\t\t\t{4,-5} : {5}", "!t", "Separate by tabs", "!s", "Separate by spaces", "!n", "Separate by newlines");
+		Console.WriteLine("\t\tExample:\n\t\t\t{0,-5} : {1}\n\t\t\t{2,-5} : {3}\n\t\t\t{4,-5} : {5}", "!t!", "Separate by tabs", "!s!", "Separate by spaces", "!n!", "Separate by newlines");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1} \t {2,20}", "-s", "!", "Exclamation mark will be used as separator.");
 		Console.WriteLine("\tExample: DbSeeder.exe {0} {1} \t {2,20}", "-s", "tab", "The word of tab will be used as separator.");
-		Console.WriteLine("\tExample: DbSeeder.exe {0} {1} \t {2,20}", "-s", "!t", "Tabs will be used as separator.");
+		Console.WriteLine("\tExample: DbSeeder.exe {0} {1} \t {2,20}", "-s", "!t!", "Use Tab as separator");
 
 		Console.WriteLine("\n{0, -5} : {1}", "-m", "To overwride the default method to be used.");
 		Console.WriteLine("\tNote - Default is POST");
+		Console.WriteLine("\tNote - Available: PATCH, PUT, DELETE, POST");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1} \t {2, 20}", "-m", "PATCH", "HttpRequest will be PATCH");
 
 		Console.WriteLine("\n{0,-5} : {1}", "-c", "Receive a file with all details. If -c argument is given, others are ignored.");
 		Console.WriteLine("\tNote - First line should contain the URL as explained in -u flag");
-		Console.WriteLine("\tNote - Second line should contain all the keys in order, in which values will be passed. uriParams must be included as well!");
-		Console.WriteLine("\tNote - Third line should contain the type of keys. uriParams MUST be string.");
-		Console.WriteLine("\tNote - As of fourth line, sample data is required.");
+		Console.WriteLine("\tNote - Second line should contain all the keys in order separated by comma. uriParams must NOT be included!");
+		Console.WriteLine("\tNote - Third line should contain the type of keys separated by comma. Types must be in the same order as keys in second line!");
+		Console.WriteLine("\tNote - Fourth line should state the separator only. ");
+		Console.WriteLine("\t\t{0, -5} \t\t {1, -20}", "!t!", "Use Tab as separator");
+		Console.WriteLine("\t\t{0, -5} \t\t {1, -20}", "!s!", "Use Space as separator");
+		Console.WriteLine("\t\t{0, -5} \t\t {1, -20}", "!n!", "Use NewLine as separator");
+		Console.WriteLine("\t\t{0, -5} \t\t {1, -20}", "tab", "The word of tab will be used as separator.");
+		Console.WriteLine("\tNote - As of fifth line, sample data is required.");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1}", "-c", "fullConfigFile.csv");
-		Console.WriteLine("\tFile content as:");
-		Console.WriteLine("\t\t{0}\n\t\t{1}\n\t\t{2}\n\t\t{3}\n\t\t{4}", 
+		Console.WriteLine("\t\tFile content as:");
+		Console.WriteLine("\t\t\t{0}\n\t\t\t{1}\n\t\t\t{2}\n\t\t\t{3}\n\t\t\t{4}", 
 			"https://localhost:5001/myApi/endPoint/{uriParam1}/{uriParam2}", 
 			"uriParam1,uriParam2,firstName,lastName", 
 			"string,string,string,string", 
