@@ -1,6 +1,9 @@
 ﻿using DbSeeder.Model.Models;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 
 /// <summary>
 /// This is the entry class to check if args is given - to process the rules
@@ -9,69 +12,173 @@ public class Program
 {
 	public static void Main(string[] args)
 	{
-		SeedDetails seedDetails = new SeedDetails();
-		// Check if arguments are provided
+		// Exit if arguments are not provided
 		if (args.Length == 0)
 		{
 			PrintHelp();
 			Environment.Exit(160);
 		}
-
-		// Check if -c flag is used with a file with all details
-		var cFlagIndex = Array.IndexOf(args, "-c");
-		if (cFlagIndex != -1)
+		try
 		{
-			// Retrieve the name of Complex file
-			var complexFileName = args[cFlagIndex + 1];
-			// Create a FileInfo and check if File exists
-			var complexFile = new FileInfo(complexFileName);
-			// If FileInfo does not exists - try to create it with full path
-			if (!complexFile.Exists)
+			SeedDetails seedDetails = new SeedDetails();
+			seedDetails.SeedItems = new List<SeedItem>();
+			// Check if -c flag is used with a file with all details
+			var cFlagIndex = Array.IndexOf(args, "-c");
+			if (cFlagIndex != -1)
 			{
-				var fullPath = Path.Combine(Environment.CurrentDirectory, complexFileName);
-				complexFile = new FileInfo(fullPath);
-			}
-			// If FileInfo cannot be retrieved, exit with invalid argument error code.
-			if (!complexFile.Exists)
-			{
-				Console.WriteLine("Complex file not found! {0,20}" , complexFileName);
-				Environment.Exit(160);
-			}
+				// Retrieve the name of Complex file and create a FileInfo
+				var complexFileName = args[cFlagIndex + 1];
+				var complexFile = new FileInfo(complexFileName);
 
-			// Setup default separator according to filetype
-			switch (complexFile.Extension)
-			{
-				case "txt":
-					seedDetails.Separator = " ";
-					break;
-				case "csv":
-					seedDetails.Separator = ",";
-					break;
-				case "tsv":
-					seedDetails.Separator = "\t";
-					break;
-				default:
-					break;
-			}
+				// If FileInfo does not exists - try to create it with full path
+				if (!complexFile.Exists)
+				{
+					var fullPath = Path.Combine(Environment.CurrentDirectory, complexFileName);
+					complexFile = new FileInfo(fullPath);
+				}
+				// If FileInfo cannot be retrieved, exit with invalid argument error code.
+				if (!complexFile.Exists)
+				{
+					Console.WriteLine("Complex file not found! {0,20}", complexFileName);
+					Environment.Exit(160);
+				}
 
-			// Read file line by line and feed seedDetails
-			// 1st line for URL
-				// find { and } - add content in between to seedDetails.UrlKeys --> repeat with updated index
-			// 2nd line for keys - add each to seedDetails.JsonKeys.Keys
-			// 3rd line for key types -- add each type to seedDetails.JsonKeys.Values
-			// 4th line for separator -- add to seedDetails.Separator
-			// As of 5th line, by line:
-				// Create an instance of SeedItem
-				// split line by Separator
-				// iterate through array - 
-					// if i < UrlKeys.length and string replace with values from the line -- save updated URL to seedItem.Uri
-					// else , get JsonKeys[i-UrlKeys.length] - and add the current value to seedItem.JsonParameters as key-value pair
+				// Setup default separator according to filetype
+				switch (complexFile.Extension)
+				{
+					case "txt":
+						seedDetails.Separator = " ";
+						break;
+					case "csv":
+						seedDetails.Separator = ",";
+						break;
+					case "tsv":
+						seedDetails.Separator = "\t";
+						break;
+					default:
+						break;
+				}
+				try
+				{
+					using (StreamReader reader = new StreamReader(complexFile.FullName))
+					{
+						string line;
+						int lineCounter = 0;
+						IList<string> keys = new List<string>();
+						IList<string> keyTypes = new List<string>();
+
+						// Read file line by line and feed seedDetails
+						while ((line = reader.ReadLine()) != null)
+						{
+							switch (lineCounter)
+							{
+								// 1st line for URL
+								case 1:
+									seedDetails.DefaultUrl = line;
+									// TODO: find { and } - add content in between to seedDetails.UrlKeys --> repeat with updated index
+									break;
+								// 2nd line for keys - add each to seedDetails.JsonKeys.Keys
+								case 2:
+									keys = line.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
+									seedDetails.JsonKeys = new Dictionary<string, string>();
+									break;
+								// 3rd line for key types -- add each type to seedDetails.JsonKeys.Values
+								case 3:
+									keyTypes = line.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
+
+									// ERROR CHECK - if number of keys do not match the number of keyTypes
+									if (keys.Count != keyTypes.Count)
+									{
+										Console.WriteLine("Number of keys and their types do not match!");
+										var longerList = keys.Count > keyTypes.Count ? keys : keyTypes;
+
+										for (var i = 0; i < longerList.Count; i++)
+										{
+											Console.WriteLine("{0, -20} : {1, 20}", keys[i], keyTypes[i]);
+										}
+										Environment.Exit(160);
+									}
+
+									for (var i = 0; i < keys.Count; i++)
+									{
+										try
+										{
+											seedDetails.JsonKeys.Add(keys[i], keyTypes[i]);
+										}
+										catch (ArgumentException)
+										{
+											Console.WriteLine("Duplicated keys provided! Key: {0, -5}", keys[i]);
+											Environment.Exit(160);
+										}
+
+									}
+									break;
+								// 4th line for separator -- add to seedDetails.Separator
+								case 4:
+									seedDetails.Separator = line;
+									break;
+								// As of 5th line, by line:
+								default:
+									var seedItem = new SeedItem();
+									var values = line.Split(seedDetails.Separator, StringSplitOptions.RemoveEmptyEntries);
+
+									for (var i = 0; i < values.Length; i++)
+									{
+										// if i < UrlKeys.length replace key with values from the line --> save updated URL to seedItem.Uri
+										if (i < seedDetails.UriKeys.Count)
+										{
+											var keyToReplaceInUri = "{" + seedDetails.UriKeys[i] + "}";
+											seedItem.Uri = seedDetails.DefaultUrl.Replace(keyToReplaceInUri, values[i]);
+										}
+										// else , get keys[i-UrlKeys.Count] - and add the current value to seedItem.JsonParameters as key-value pair
+										else
+										{
+											var keyToJson = keys[i - seedDetails.UriKeys.Count];
+											var keyType = keyTypes[i - seedDetails.UriKeys.Count];
+
+											switch (keyType)
+											{
+												case "string":
+													seedItem.JsonParameters.Add(keyToJson, values[i].ToString());
+													break;
+												case "int":
+													seedItem.JsonParameters.Add(keyToJson, Convert.ToInt32(values[i]));
+													break;
+												case "long":
+													seedItem.JsonParameters.Add(keyToJson, Convert.ToInt64(values[i]));
+													break;
+												case "bol":
+													seedItem.JsonParameters.Add(keyToJson, Convert.ToBoolean(values[i]));
+													break;
+												default:
+													Console.WriteLine("Invalid type ({0}) provided for key ({1})", keyType, keyToJson);
+													Environment.Exit(160);
+													break;
+											}
+										}
+									}
+									seedDetails.SeedItems.Add(seedItem);
+									break;
+							}
+						}
+					}
+				}
+				catch (OutOfMemoryException)
+				{
+					Console.WriteLine("There is not enough memory to process the file. Try to split it into smaller files!");
+					Environment.Exit(8);
+				}
+			}
+			else
+			{
+				// TODO: iterate through args - and seed data to SeedDetails
+			}
 		}
-		else 
+		catch (Exception e)
 		{
-			// TODO: iterate through args - and seed data to SeedDetails
+			Console.WriteLine("Something went wrong. Please create a new issue with error details, possible sample data at https://github.com/AndrasHorinka/DbSeeder Thanks!");
+			Console.WriteLine("Error details:\n{0}", e.Message);
 		}
-		
 	}
 
 	private static void PrintHelp()
@@ -94,7 +201,7 @@ public class Program
 		Console.WriteLine("\tNote - Default separator is comma");
 		Console.WriteLine("\tNote - Key names must be unique!");
 		Console.WriteLine("\t\tPossible key types are:" );
-		Console.WriteLine("\t\t\tstring, int, bol");
+		Console.WriteLine("\t\t\tstring, int, long, bol");
 		Console.WriteLine("\t\tExample: \n\t\t\turiParam1, string\n\t\t\turiParam2, string,\n\t\t\tJsonParam1, int");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1}", "-k", "keys.csv");
 
