@@ -70,12 +70,30 @@ public class Program
 						// Read file line by line and feed seedDetails
 						while ((line = reader.ReadLine()) != null)
 						{
+							lineCounter++;
 							switch (lineCounter)
 							{
 								// 1st line for URL
 								case 1:
 									seedDetails.DefaultUrl = line;
-									// TODO: find { and } - add content in between to seedDetails.UrlKeys --> repeat with updated index
+									// find { and } - add content in between to seedDetails.UrlKeys --> repeat with updated index
+									seedDetails.UriKeys = new List<string>();
+									int startIndex = -1;
+									int endIndex = 0;
+									while (endIndex+1 < line.Length)
+									{
+										startIndex = line.IndexOf("{", startIndex+1, StringComparison.CurrentCultureIgnoreCase);
+										endIndex = line.IndexOf("}", endIndex+1, StringComparison.CurrentCultureIgnoreCase);
+
+										// Break out if { or } are not found (i.e.: only opening/closing curcly-bracket is used || OR || no uriParams are given
+										if (startIndex == -1 || endIndex == -1)
+										{
+											Console.WriteLine("NOTE - no parameters found in the URL : {0}", line);
+											break;
+										}
+										
+										seedDetails.UriKeys.Add(line[startIndex..(endIndex+1)]);
+									}
 									break;
 								// 2nd line for keys - add each to seedDetails.JsonKeys.Keys
 								case 2:
