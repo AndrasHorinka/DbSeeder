@@ -145,10 +145,10 @@ public class Program
 										// if i < UrlKeys.length replace key with values from the line --> save updated URL to seedItem.Uri
 										if (i < seedDetails.UriKeys.Count)
 										{
-											var keyToReplaceInUri = "{" + seedDetails.UriKeys[i] + "}";
+											var keyToReplaceInUri = seedDetails.UriKeys[i];
 											seedItem.Uri = seedDetails.DefaultUrl.Replace(keyToReplaceInUri, values[i]);
 										}
-										// else , get keys[i-UrlKeys.Count] - and add the current value to seedItem.JsonParameters as key-value pair
+										// else , get keys[i-UriKeys.Count] - and add the current value to seedItem.JsonParameters as key-value pair
 										else
 										{
 											var keyToJson = keys[i - seedDetails.UriKeys.Count];
