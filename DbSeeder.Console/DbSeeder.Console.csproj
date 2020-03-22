@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\DbSeeder.Model\DbSeeder.Model.csproj" />
+    <ProjectReference Include="..\..\DbSeeder.Services\DbSeeder.Services.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,16 +1,19 @@
 ﻿using DbSeeder.Model.Models;
+using DbSeeder.Services.Implementations;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 /// <summary>
 /// This is the entry class to check if args is given - to process the rules
 /// </summary>
 public class Program
 {
-	public static void Main(string[] args)
+	public static async Task Main(string[] args)
 	{
 		// Exit if arguments are not provided
 		if (args.Length == 0)
@@ -20,8 +23,12 @@ public class Program
 		}
 		try
 		{
-			SeedDetails seedDetails = new SeedDetails();
-			seedDetails.SeedItems = new List<SeedItem>();
+			SeedDetails seedDetails = new SeedDetails()
+			{
+				Method = HttpMethod.Post,
+				SeedItems = new List<SeedItem>()
+			};
+
 			// Check if -c flag is used with a file with all details
 			var cFlagIndex = Array.IndexOf(args, "-c");
 			if (cFlagIndex != -1)
@@ -146,7 +153,7 @@ public class Program
 										if (i < seedDetails.UriKeys.Count)
 										{
 											var keyToReplaceInUri = seedDetails.UriKeys[i];
-											seedItem.Uri = seedDetails.DefaultUrl.Replace(keyToReplaceInUri, values[i]);
+											seedItem.Url = seedDetails.DefaultUrl.Replace(keyToReplaceInUri, values[i]);
 										}
 										// else , get keys[i-UriKeys.Count] - and add the current value to seedItem.JsonParameters as key-value pair
 										else
@@ -191,12 +198,63 @@ public class Program
 			{
 				// TODO: iterate through args - and seed data to SeedDetails
 			}
+
+			// Seed Content
+			await SeedContent(seedDetails);
 		}
 		catch (Exception e)
 		{
 			Console.WriteLine("Something went wrong. Please create a new issue with error details, possible sample data at https://github.com/AndrasHorinka/DbSeeder Thanks!");
 			Console.WriteLine("Error details:\n{0}", e.Message);
 		}
+	}
+
+	private static async Task SeedContent(SeedDetails seedDetails)
+	{
+		var seederService = new SeederService(seedDetails);
+		seedDetails = await seederService.Seed();
+		int success = 0;
+
+		// Create a log file for the results
+		string initFileName = $"DbSeeder-ErrorLog-{DateTime.Now:yy / MM / dd - H:mm:ss}";
+		int version = 1;
+		FileInfo file;
+
+		// Create a File with a name not existing yet
+		do
+		{
+			StringBuilder builder = new StringBuilder(initFileName);
+			builder.Append(version.ToString());
+			file = new FileInfo(builder.ToString());
+
+			// if FileName exists - create a new version
+			if (file.Exists) version++;
+
+		} while (!file.Exists);
+
+		// Iterate through items and print out Summary + write log file
+		using (StreamWriter writer = new StreamWriter(file.Name))
+		{
+			for (var i = 0; i < seedDetails.SeedItems.Count; i++)
+			{
+				var seedItem = seedDetails.SeedItems[i];
+				// Request was successful continue to next
+				if (seedItem.ResponseMessage.IsSuccessStatusCode)
+				{
+					success++;
+					continue;
+				}
+
+				await writer.WriteLineAsync($"\n---- {i + 1}. element failed ----\nReason: {seedItem.ResponseMessage.StatusCode} - {seedItem.ResponseMessage.ReasonPhrase}\n{seedItem.ResponseMessage}\nURL: {seedItem.Url}{seedItem.JsonParameters.Select(i => $"\n{i.Key} : {i.Value}")}\n");
+			}
+		}
+		Console.WriteLine("\nSeeding completed. Out of {0:n} items {1:n} were succesful.");
+		Console.WriteLine("Errors -with error messages- are loged into: {0}", file.FullName);
+		//			await writer.WriteLineAsync($"\n---- {i + 1}. element failed ----\nReason: {seedItem.ResponseMessage.StatusCode} - {seedItem.ResponseMessage.ReasonPhrase}\n{seedItem.ResponseMessage}\nURL: {seedItem.Uri}{seedItem.JsonParameters.Select(i => $"\n{i.Key} : {i.Value}")}\n");
+		//			foreach (var item in seedItem.JsonParameters)
+		//			{
+		//				writer.WriteLine("{0, -20} : {1, 20}", item.Key, item.Value);
+		//			}
 	}
 
 	private static void PrintHelp()
