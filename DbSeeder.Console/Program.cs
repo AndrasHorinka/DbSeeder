@@ -65,133 +65,126 @@ public class Program
 					default:
 						break;
 				}
-				try
+				
+				using (StreamReader reader = new StreamReader(complexFile.FullName))
 				{
-					using (StreamReader reader = new StreamReader(complexFile.FullName))
+					string line;
+					int lineCounter = 0;
+					IList<string> keys = new List<string>();
+					IList<string> keyTypes = new List<string>();
+
+					// Read file line by line and feed seedDetails
+					while ((line = reader.ReadLine()) != null)
 					{
-						string line;
-						int lineCounter = 0;
-						IList<string> keys = new List<string>();
-						IList<string> keyTypes = new List<string>();
-
-						// Read file line by line and feed seedDetails
-						while ((line = reader.ReadLine()) != null)
+						lineCounter++;
+						switch (lineCounter)
 						{
-							lineCounter++;
-							switch (lineCounter)
-							{
-								// 1st line for URL
-								case 1:
-									seedDetails.DefaultUrl = line;
-									// find { and } - add content in between to seedDetails.UrlKeys --> repeat with updated index
-									seedDetails.UriKeys = new List<string>();
-									int startIndex = -1;
-									int endIndex = 0;
-									while (endIndex+1 < line.Length)
-									{
-										startIndex = line.IndexOf("{", startIndex+1, StringComparison.CurrentCultureIgnoreCase);
-										endIndex = line.IndexOf("}", endIndex+1, StringComparison.CurrentCultureIgnoreCase);
+							// 1st line for URL
+							case 1:
+								seedDetails.DefaultUrl = line;
+								// find { and } - add content in between to seedDetails.UrlKeys --> repeat with updated index
+								seedDetails.UriKeys = new List<string>();
+								int startIndex = -1;
+								int endIndex = 0;
+								while (endIndex+1 < line.Length)
+								{
+									startIndex = line.IndexOf("{", startIndex+1, StringComparison.CurrentCultureIgnoreCase);
+									endIndex = line.IndexOf("}", endIndex+1, StringComparison.CurrentCultureIgnoreCase);
 
-										// Break out if { or } are not found (i.e.: only opening/closing curcly-bracket is used || OR || no uriParams are given
-										if (startIndex == -1 || endIndex == -1)
-										{
-											Console.WriteLine("NOTE - no parameters found in the URL : {0}", line);
-											break;
-										}
-										
-										seedDetails.UriKeys.Add(line[startIndex..(endIndex+1)]);
+									// Break out if { or } are not found (i.e.: only opening/closing curcly-bracket is used || OR || no uriParams are given
+									if (startIndex == -1 || endIndex == -1)
+									{
+										Console.WriteLine("NOTE - no parameters found in the URL : {0}", line);
+										break;
 									}
-									break;
-								// 2nd line for keys - add each to seedDetails.JsonKeys.Keys
-								case 2:
-									keys = line.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
-									seedDetails.JsonKeys = new Dictionary<string, string>();
-									break;
-								// 3rd line for key types -- add each type to seedDetails.JsonKeys.Values
-								case 3:
-									keyTypes = line.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
+										
+									seedDetails.UriKeys.Add(line[startIndex..(endIndex+1)]);
+								}
+								break;
+							// 2nd line for keys - add each to seedDetails.JsonKeys.Keys
+							case 2:
+								keys = line.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
+								seedDetails.JsonKeys = new Dictionary<string, string>();
+								break;
+							// 3rd line for key types -- add each type to seedDetails.JsonKeys.Values
+							case 3:
+								keyTypes = line.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
 
-									// ERROR CHECK - if number of keys do not match the number of keyTypes
-									if (keys.Count != keyTypes.Count)
+								// ERROR CHECK - if number of keys do not match the number of keyTypes
+								if (keys.Count != keyTypes.Count)
+								{
+									Console.WriteLine("Number of keys and their types do not match!");
+									var longerList = keys.Count > keyTypes.Count ? keys : keyTypes;
+
+									for (var i = 0; i < longerList.Count; i++)
 									{
-										Console.WriteLine("Number of keys and their types do not match!");
-										var longerList = keys.Count > keyTypes.Count ? keys : keyTypes;
+										Console.WriteLine("{0, -20} : {1, 20}", keys[i], keyTypes[i]);
+									}
+									Environment.Exit(160);
+								}
 
-										for (var i = 0; i < longerList.Count; i++)
-										{
-											Console.WriteLine("{0, -20} : {1, 20}", keys[i], keyTypes[i]);
-										}
+								for (var i = 0; i < keys.Count; i++)
+								{
+									try
+									{
+										seedDetails.JsonKeys.Add(keys[i], keyTypes[i]);
+									}
+									catch (ArgumentException)
+									{
+										Console.WriteLine("Duplicated keys provided! Key: {0, -5}", keys[i]);
 										Environment.Exit(160);
 									}
 
-									for (var i = 0; i < keys.Count; i++)
-									{
-										try
-										{
-											seedDetails.JsonKeys.Add(keys[i], keyTypes[i]);
-										}
-										catch (ArgumentException)
-										{
-											Console.WriteLine("Duplicated keys provided! Key: {0, -5}", keys[i]);
-											Environment.Exit(160);
-										}
+								}
+								break;
+							// 4th line for separator -- add to seedDetails.Separator
+							case 4:
+								seedDetails.Separator = line;
+								break;
+							// As of 5th line, by line:
+							default:
+								var seedItem = new SeedItem();
+								var values = line.Split(seedDetails.Separator, StringSplitOptions.RemoveEmptyEntries);
 
+								for (var i = 0; i < values.Length; i++)
+								{
+									// if i < UrlKeys.length replace key with values from the line --> save updated URL to seedItem.Uri
+									if (i < seedDetails.UriKeys.Count)
+									{
+										var keyToReplaceInUri = seedDetails.UriKeys[i];
+										seedItem.Url = seedDetails.DefaultUrl.Replace(keyToReplaceInUri, values[i]);
 									}
-									break;
-								// 4th line for separator -- add to seedDetails.Separator
-								case 4:
-									seedDetails.Separator = line;
-									break;
-								// As of 5th line, by line:
-								default:
-									var seedItem = new SeedItem();
-									var values = line.Split(seedDetails.Separator, StringSplitOptions.RemoveEmptyEntries);
-
-									for (var i = 0; i < values.Length; i++)
+									// else , get keys[i-UriKeys.Count] - and add the current value to seedItem.JsonParameters as key-value pair
+									else
 									{
-										// if i < UrlKeys.length replace key with values from the line --> save updated URL to seedItem.Uri
-										if (i < seedDetails.UriKeys.Count)
-										{
-											var keyToReplaceInUri = seedDetails.UriKeys[i];
-											seedItem.Url = seedDetails.DefaultUrl.Replace(keyToReplaceInUri, values[i]);
-										}
-										// else , get keys[i-UriKeys.Count] - and add the current value to seedItem.JsonParameters as key-value pair
-										else
-										{
-											var keyToJson = keys[i - seedDetails.UriKeys.Count];
-											var keyType = keyTypes[i - seedDetails.UriKeys.Count];
+										var keyToJson = keys[i - seedDetails.UriKeys.Count];
+										var keyType = keyTypes[i - seedDetails.UriKeys.Count];
 
-											switch (keyType)
-											{
-												case "string":
-													seedItem.JsonParameters.Add(keyToJson, values[i].ToString());
-													break;
-												case "int":
-													seedItem.JsonParameters.Add(keyToJson, Convert.ToInt32(values[i]));
-													break;
-												case "long":
-													seedItem.JsonParameters.Add(keyToJson, Convert.ToInt64(values[i]));
-													break;
-												case "bol":
-													seedItem.JsonParameters.Add(keyToJson, Convert.ToBoolean(values[i]));
-													break;
-												default:
-													Console.WriteLine("Invalid type ({0}) provided for key ({1})", keyType, keyToJson);
-													Environment.Exit(160);
-													break;
-											}
+										switch (keyType)
+										{
+											case "string":
+												seedItem.JsonParameters.Add(keyToJson, values[i].ToString());
+												break;
+											case "int":
+												seedItem.JsonParameters.Add(keyToJson, Convert.ToInt32(values[i]));
+												break;
+											case "long":
+												seedItem.JsonParameters.Add(keyToJson, Convert.ToInt64(values[i]));
+												break;
+											case "bol":
+												seedItem.JsonParameters.Add(keyToJson, Convert.ToBoolean(values[i]));
+												break;
+											default:
+												Console.WriteLine("Invalid type ({0}) provided for key ({1})", keyType, keyToJson);
+												Environment.Exit(160);
+												break;
 										}
 									}
-									seedDetails.SeedItems.Add(seedItem);
-									break;
-							}
+								}
+								seedDetails.SeedItems.Add(seedItem);
+								break;
 						}
 					}
-				}
-				catch (OutOfMemoryException)
-				{
-					Console.WriteLine("There is not enough memory to process the file. Try to split it into smaller files!");
-					Environment.Exit(8);
 				}
 			}
 			else
@@ -201,6 +194,11 @@ public class Program
 
 			// Seed Content
 			await SeedContent(seedDetails);
+		}
+		catch (OutOfMemoryException)
+		{
+			Console.WriteLine("There is not enough memory to process the file. Try to split it into smaller files!");
+			Environment.Exit(8);
 		}
 		catch (Exception e)
 		{
@@ -245,16 +243,15 @@ public class Program
 					continue;
 				}
 
-				await writer.WriteLineAsync($"\n---- {i + 1}. element failed ----\nReason: {seedItem.ResponseMessage.StatusCode} - {seedItem.ResponseMessage.ReasonPhrase}\n{seedItem.ResponseMessage}\nURL: {seedItem.Url}{seedItem.JsonParameters.Select(i => $"\n{i.Key} : {i.Value}")}\n");
+				await writer.WriteLineAsync($"\n---- {i + 1}. element failed ----\nReason: {seedItem.ResponseMessage.StatusCode} - {seedItem.ResponseMessage.ReasonPhrase}\n{seedItem.ResponseMessage}\nURL: {seedItem.Url}");
+				foreach (var item in seedItem.JsonParameters)
+				{
+					await writer.WriteLineAsync($"{item.Key, -20} : {item.Value, 20}");
+				}
 			}
 		}
-		Console.WriteLine("\nSeeding completed. Out of {0:n} items {1:n} were succesful.");
+		Console.WriteLine("\nSeeding completed. Out of {0:n} items {1:n} were succesful.", seedDetails.SeedItems.Count, success);
 		Console.WriteLine("Errors -with error messages- are loged into: {0}", file.FullName);
-		//			await writer.WriteLineAsync($"\n---- {i + 1}. element failed ----\nReason: {seedItem.ResponseMessage.StatusCode} - {seedItem.ResponseMessage.ReasonPhrase}\n{seedItem.ResponseMessage}\nURL: {seedItem.Uri}{seedItem.JsonParameters.Select(i => $"\n{i.Key} : {i.Value}")}\n");
-		//			foreach (var item in seedItem.JsonParameters)
-		//			{
-		//				writer.WriteLine("{0, -20} : {1, 20}", item.Key, item.Value);
-		//			}
 	}
 
 	private static void PrintHelp()
