@@ -83,23 +83,7 @@ public class Program
 							case 1:
 								seedDetails.DefaultUrl = line;
 								// find { and } - add content in between to seedDetails.UrlKeys --> repeat with updated index
-								seedDetails.UriKeys = new List<string>();
-								int startIndex = -1;
-								int endIndex = 0;
-								while (endIndex+1 < line.Length)
-								{
-									startIndex = line.IndexOf("{", startIndex+1, StringComparison.CurrentCultureIgnoreCase);
-									endIndex = line.IndexOf("}", endIndex+1, StringComparison.CurrentCultureIgnoreCase);
-
-									// Break out if { or } are not found (i.e.: only opening/closing curcly-bracket is used || OR || no uriParams are given
-									if (startIndex == -1 || endIndex == -1)
-									{
-										Console.WriteLine("NOTE - no parameters found in the URL : {0}", line);
-										break;
-									}
-										
-									seedDetails.UriKeys.Add(line[startIndex..(endIndex+1)]);
-								}
+								ExtractParamsFromDefaultUrl(ref seedDetails);
 								break;
 							// 2nd line for keys - add each to seedDetails.JsonKeys.Keys
 							case 2:
@@ -139,7 +123,13 @@ public class Program
 								break;
 							// 4th line for separator -- add to seedDetails.Separator
 							case 4:
-								seedDetails.Separator = line;
+								seedDetails.Separator = line.Trim() switch
+								{
+									"!n!" => Environment.NewLine,
+									"!t!" => "\t",
+									"!s!" => " ",
+									_ => line,
+								};
 								break;
 							// As of 5th line, by line:
 							default:
@@ -189,7 +179,66 @@ public class Program
 			}
 			else
 			{
-				// TODO: iterate through args - and seed data to SeedDetails
+				for (var i = 0; i < args.Length-1; i += 2)
+				{
+					var valueForParam = args[i + 1];
+					switch (args[i])
+					{
+						case "-e":
+							// args[i+1] must be a file - check if exists - throw if not
+							// args[i+1] must meet following structure
+								// First line keys
+								// as of second, values
+							break;
+						// URL
+						case "-u":
+							seedDetails.DefaultUrl = valueForParam;
+							ExtractParamsFromDefaultUrl(ref seedDetails);
+							break;
+						// Keys
+						case "-k":
+							// first - keyName
+							// 2nd - can be unique if so --> 
+								// 3rd - type - can be regex if so -->
+									// 4th onwards must be concatenated
+							// if not unique, 2nd is type --> can be regex if so -->
+								// 3rd onwards must be concatenated
+							break;
+						// Separator
+						case "-s":
+							seedDetails.Separator = valueForParam switch
+							{
+								"!n!" => Environment.NewLine,
+								"!t!" => "\t",
+								"!s!" => " ",
+								_ => valueForParam
+							};
+							break;
+						// Method
+						case "-m":
+							seedDetails.Method = valueForParam switch
+							{
+								"POST" => HttpMethod.Post,
+								"PATCH" => HttpMethod.Patch,
+								"PUT" => HttpMethod.Put,
+								"DELETE" => HttpMethod.Delete,
+								_ => null
+							};
+							// ERROR CHECK - if invalid method is provided
+							if (seedDetails.Method is null)
+							{
+								Console.WriteLine("Incorrect method provided: {0}", valueForParam);
+								Environment.Exit(160);
+							}
+							break;
+						// If invalid flag provided
+						default:
+							Console.WriteLine("Invalid flag provided: {0}", args[i]);
+							Console.WriteLine("Run the file without parameters to receive");
+							Environment.Exit(160);
+							break;
+					}
+				}
 			}
 
 			// Seed Content
@@ -274,8 +323,9 @@ public class Program
 		Console.WriteLine("\tNote - Default separator is comma");
 		Console.WriteLine("\tNote - Key names must be unique!");
 		Console.WriteLine("\t\tPossible key types are:" );
-		Console.WriteLine("\t\t\tstring, int, long, bol");
-		Console.WriteLine("\t\tExample: \n\t\t\turiParam1, string\n\t\t\turiParam2, string,\n\t\t\tJsonParam1, int");
+		Console.WriteLine("\t\t\tstring, int, long, bol, regex");
+		Console.WriteLine("\t\t\t\tIf type is regex - a third value must be given with regex expresssion");
+		Console.WriteLine("\t\tExample: \n\t\t\turiParam1, string\n\t\t\turiParam2, string\n\t\t\tJsonParam1, unique, int\n\t\t\tJsonParam2, regex, [0-9a-z]+[0-9a-z]?");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1}", "-k", "keys.csv");
 
 		Console.WriteLine("\n{0, -5} : {1}", "-s", "To overwrite default separator.");
@@ -309,5 +359,26 @@ public class Program
 			"gym,users,John,Doe", 
 			"gym,users,Hulk,Hogan");
 
+	}
+	
+	private static void ExtractParamsFromDefaultUrl(ref SeedDetails seedDetails)
+	{
+		seedDetails.UriKeys = new List<string>();
+		int startIndex = -1;
+		int endIndex = 0;
+		while (endIndex + 1 < seedDetails.DefaultUrl.Length)
+		{
+			startIndex = seedDetails.DefaultUrl.IndexOf("{", startIndex + 1, StringComparison.CurrentCultureIgnoreCase);
+			endIndex = seedDetails.DefaultUrl.IndexOf("}", endIndex + 1, StringComparison.CurrentCultureIgnoreCase);
+
+			// Break out if { or } are not found (i.e.: only opening/closing curcly-bracket is used || OR || no uriParams are given
+			if (startIndex == -1 || endIndex == -1)
+			{
+				Console.WriteLine("NOTE - no parameters found in the URL : {0}", seedDetails.DefaultUrl);
+				break;
+			}
+
+			seedDetails.UriKeys.Add(seedDetails.DefaultUrl[startIndex..(endIndex + 1)]);
+		}
 	}
 }
