@@ -26,8 +26,9 @@ public class Program
 			SeedDetails seedDetails = new SeedDetails()
 			{
 				Method = HttpMethod.Post,
-				SeedItems = new List<SeedItem>()
-			};
+				SeedItems = new List<SeedItem>(),
+				JsonKeys = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
+		};
 
 			// Check if -c flag is used with a file with all details
 			var cFlagIndex = Array.IndexOf(args, "-c");
@@ -35,20 +36,7 @@ public class Program
 			{
 				// Retrieve the name of Complex file and create a FileInfo
 				var complexFileName = args[cFlagIndex + 1];
-				var complexFile = new FileInfo(complexFileName);
-
-				// If FileInfo does not exists - try to create it with full path
-				if (!complexFile.Exists)
-				{
-					var fullPath = Path.Combine(Environment.CurrentDirectory, complexFileName);
-					complexFile = new FileInfo(fullPath);
-				}
-				// If FileInfo cannot be retrieved, exit with invalid argument error code.
-				if (!complexFile.Exists)
-				{
-					Console.WriteLine("Complex file not found! {0,20}", complexFileName);
-					Environment.Exit(160);
-				}
+				var complexFile = ValidateFileInput(complexFileName);
 
 				// Setup default separator according to filetype
 				switch (complexFile.Extension)
@@ -65,7 +53,7 @@ public class Program
 					default:
 						break;
 				}
-				
+
 				using (StreamReader reader = new StreamReader(complexFile.FullName))
 				{
 					string line;
@@ -88,7 +76,6 @@ public class Program
 							// 2nd line for keys - add each to seedDetails.JsonKeys.Keys
 							case 2:
 								keys = line.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
-								seedDetails.JsonKeys = new Dictionary<string, string>();
 								break;
 							// 3rd line for key types -- add each type to seedDetails.JsonKeys.Values
 							case 3:
@@ -177,18 +164,20 @@ public class Program
 					}
 				}
 			}
+			// If -c flag is not provided
 			else
 			{
+				// Store all core info or references
+				FileInfo fileWithSamples = null;
+				//IList<string> keys = new List<string>();
 				for (var i = 0; i < args.Length-1; i += 2)
 				{
 					var valueForParam = args[i + 1];
 					switch (args[i])
 					{
+						// Example data - only to store file name reference to be processed once all other flags are processed
 						case "-e":
-							// args[i+1] must be a file - check if exists - throw if not
-							// args[i+1] must meet following structure
-								// First line keys
-								// as of second, values
+							fileWithSamples = ValidateFileInput(valueForParam);
 							break;
 						// URL
 						case "-u":
@@ -237,6 +226,59 @@ public class Program
 							Console.WriteLine("Run the file without parameters to receive");
 							Environment.Exit(160);
 							break;
+					}
+				}
+
+				// TODO: process file from -e flag
+				// First line keys
+				// as of second, values
+				using (StreamReader reader = new StreamReader(fileWithSamples.FullName))
+				{
+					string line;
+					int lineCounter = 0;
+
+					IList<string> keysForJson = new List<string>();
+					// Read file line by line and feed seedDetails
+					while ((line = reader.ReadLine()) != null)
+					{
+						lineCounter++;
+						if (lineCounter == 1)
+						{
+							keysForJson = line.Split(seedDetails.Separator, StringSplitOptions.RemoveEmptyEntries).ToList();
+							// ERROR CHECK - if keys in sample file have the same amount of keys as keys in key file
+							if (keysForJson.Count != seedDetails.JsonKeys.Count)
+							{
+								Console.WriteLine("ERROR - Number of keys in key file does not match number of keys provided in sample file!");
+								Environment.Exit(160);
+							}
+							// ERROR CHECK - if keys in sample file match keys in key file
+							foreach (var key in keysForJson)
+							{
+								if (seedDetails.JsonKeys.Keys.Contains(key)) continue;
+
+								Console.WriteLine("ERROR - Mismatch between keys in in key file and sample file \n{0, 10} is not in key file!", key);
+							}
+
+							// check if key is part of 
+						}
+						switch (lineCounter)
+						{
+							// 1st line for keys
+							case 1:
+								
+								foreach (var key in keys)
+								{
+									keysForJson.Add(key);
+								}
+								break;
+							default:
+								var seedItem = new SeedItem
+								{
+									UriParameters = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase),
+									JsonParameters = new Dictionary<string, object>(StringComparer.CurrentCultureIgnoreCase)
+								};
+								break;
+						}
 					}
 				}
 			}
@@ -319,13 +361,13 @@ public class Program
 		Console.WriteLine("\tExample: DbSeeder.exe {0} {1}", "-u", "https://55.146.23.33/myApi/endPoint/{uriParam1}/{uriParam2}");
 
 		Console.WriteLine("\n{0,-5} : {1}", "-k", "Stands for the filename storing the keys and their types. Must be followed by a filename.");
-		Console.WriteLine("\tNote - Default type is string.");
+		Console.WriteLine("\tNote - Only JsonKeys must be included - not uriKeys.");
 		Console.WriteLine("\tNote - Default separator is comma");
 		Console.WriteLine("\tNote - Key names must be unique!");
 		Console.WriteLine("\t\tPossible key types are:" );
-		Console.WriteLine("\t\t\tstring, int, long, bol, regex");
+		Console.WriteLine("\t\t\tstring, int, long, bol, regex - Except bol all types can be unique by preceeding it with unique keyword!");
 		Console.WriteLine("\t\t\t\tIf type is regex - a third value must be given with regex expresssion");
-		Console.WriteLine("\t\tExample: \n\t\t\turiParam1, string\n\t\t\turiParam2, string\n\t\t\tJsonParam1, unique, int\n\t\t\tJsonParam2, regex, [0-9a-z]+[0-9a-z]?");
+		Console.WriteLine("\t\tExample: \n\t\t\tJsonParam1, int\n\t\t\tJsonParam2, long\n\t\t\tJsonParam3, unique, int\n\t\t\tJsonParam4, regex, [0-9a-z]+[0-9a-z]?");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1}", "-k", "keys.csv");
 
 		Console.WriteLine("\n{0, -5} : {1}", "-s", "To overwrite default separator.");
@@ -380,5 +422,25 @@ public class Program
 
 			seedDetails.UriKeys.Add(seedDetails.DefaultUrl[startIndex..(endIndex + 1)]);
 		}
+	}
+
+	private static FileInfo ValidateFileInput(string fileName)
+	{
+		var file = new FileInfo(fileName);
+
+		// If FileInfo does not exists - try to create it with full path
+		if (!file.Exists)
+		{
+			var fullPath = Path.Combine(Environment.CurrentDirectory, fileName);
+			file = new FileInfo(fullPath);
+		}
+		// If FileInfo cannot be retrieved, exit with invalid argument error code.
+		if (!file.Exists)
+		{
+			Console.WriteLine("Complex file not found! {0,20}", fileName);
+			Environment.Exit(160);
+		}
+
+		return file;
 	}
 }
