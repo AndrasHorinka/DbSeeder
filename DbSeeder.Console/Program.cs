@@ -125,7 +125,7 @@ public class Program
 
 								for (var i = 0; i < values.Length; i++)
 								{
-									// if i < UrlKeys.length replace key with values from the line --> save updated URL to seedItem.Uri
+									// if i < UrlKeys.Count replace key with values from the line --> save updated URL to seedItem.Uri
 									if (i < seedDetails.UriKeys.Count)
 									{
 										var keyToReplaceInUri = seedDetails.UriKeys[i];
@@ -236,48 +236,59 @@ public class Program
 				{
 					string line;
 					int lineCounter = 0;
+					IList<string> keys = new List<string>();
 
-					IList<string> keysForJson = new List<string>();
 					// Read file line by line and feed seedDetails
 					while ((line = reader.ReadLine()) != null)
 					{
 						lineCounter++;
+						// add keys to first line --> iterate through seedDetails.JsonKeys.Keys --> look up index of key in firstline list --> use that index to retrieve value
+						var seedItem = new SeedItem
+						{
+							UriParameters = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase),
+							JsonParameters = new Dictionary<string, object>(StringComparer.CurrentCultureIgnoreCase)
+						};
+						var values = line.Split(seedDetails.Separator, StringSplitOptions.RemoveEmptyEntries);
+
 						if (lineCounter == 1)
 						{
-							keysForJson = line.Split(seedDetails.Separator, StringSplitOptions.RemoveEmptyEntries).ToList();
-							// ERROR CHECK - if keys in sample file have the same amount of keys as keys in key file
-							if (keysForJson.Count != seedDetails.JsonKeys.Count)
-							{
-								Console.WriteLine("ERROR - Number of keys in key file does not match number of keys provided in sample file!");
-								Environment.Exit(160);
-							}
-							// ERROR CHECK - if keys in sample file match keys in key file
-							foreach (var key in keysForJson)
-							{
-								if (seedDetails.JsonKeys.Keys.Contains(key)) continue;
-
-								Console.WriteLine("ERROR - Mismatch between keys in in key file and sample file \n{0, 10} is not in key file!", key);
-							}
-
-							// check if key is part of 
+							keys = values.ToList();
 						}
-						switch (lineCounter)
+
+						for (var i = 0; i < keys.Count; i++)
 						{
-							// 1st line for keys
-							case 1:
-								
-								foreach (var key in keys)
+							// if i < UrlKeys.Count replace key with values from the line --> save updated URL to seedItem.Uri
+							if (i < seedDetails.UriKeys.Count)
+							{
+								var keyToReplaceInUri = seedDetails.UriKeys[i];
+								seedItem.Url = seedDetails.DefaultUrl.Replace(keyToReplaceInUri, values[i]);
+							}
+							// else , get keys[i-UriKeys.Count] - and add the current value to seedItem.JsonParameters as key-value pair
+							else
+							{
+								var keyToJson = keys[i];
+								var keyType = seedDetails.JsonKeys[keyToJson];
+
+								switch (keyType)
 								{
-									keysForJson.Add(key);
+									case "string":
+										seedItem.JsonParameters.Add(keyToJson, values[i].ToString());
+										break;
+									case "int":
+										seedItem.JsonParameters.Add(keyToJson, Convert.ToInt32(values[i]));
+										break;
+									case "long":
+										seedItem.JsonParameters.Add(keyToJson, Convert.ToInt64(values[i]));
+										break;
+									case "bol":
+										seedItem.JsonParameters.Add(keyToJson, Convert.ToBoolean(values[i]));
+										break;
+									default:
+										Console.WriteLine("Invalid type ({0}) provided for key ({1})", keyType, keyToJson);
+										Environment.Exit(160);
+										break;
 								}
-								break;
-							default:
-								var seedItem = new SeedItem
-								{
-									UriParameters = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase),
-									JsonParameters = new Dictionary<string, object>(StringComparer.CurrentCultureIgnoreCase)
-								};
-								break;
+							}
 						}
 					}
 				}
@@ -350,7 +361,8 @@ public class Program
 		Console.WriteLine("DbSeeder Console Help");
 		Console.WriteLine("\nFollowing arguments are possible");
 		Console.WriteLine("\n{0,-5} : {1}", "-e", "Stands for the name of the file with the sample data. Must be followed by a filename.");
-		Console.WriteLine("\tNote - The first line of the file should represent respective keys - in order which values are passed.");
+		Console.WriteLine("\tNote - First line must represent the name of Uriparams, followed by the name of JsonKeys. Each separated by separator!");
+		Console.WriteLine("\tNote - As of secondline the values for the respective parameters are needed.");
 		Console.WriteLine("\t\turiParam1,uriParam2,firstname,lastname\n\t\tgym,users,John,Doe\n\t\tgym,users,Hulk,Hogan");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1}", "-e", "examples.csv");
 
