@@ -27,7 +27,7 @@ public class Program
 			{
 				Method = HttpMethod.Post,
 				SeedItems = new List<SeedItem>(),
-				JsonKeys = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
+				JsonKeys = new List<List<string>>()
 		};
 
 			// Check if -c flag is used with a file with all details
@@ -96,16 +96,12 @@ public class Program
 
 								for (var i = 0; i < keys.Count; i++)
 								{
-									try
+									List<string> keyDetail = new List<string>
 									{
-										seedDetails.JsonKeys.Add(keys[i], keyTypes[i]);
-									}
-									catch (ArgumentException)
-									{
-										Console.WriteLine("Duplicated keys provided! Key: {0, -5}", keys[i]);
-										Environment.Exit(160);
-									}
-
+										keys[i],
+										keyTypes[i]
+									};
+									seedDetails.JsonKeys.Add(keyDetail);
 								}
 								break;
 							// 4th line for separator -- add to seedDetails.Separator
@@ -118,7 +114,7 @@ public class Program
 									_ => line,
 								};
 								break;
-							// As of 5th line, by line:
+							// As of 5th line, examples, by line:
 							default:
 								var seedItem = new SeedItem();
 								var values = line.Split(seedDetails.Separator, StringSplitOptions.RemoveEmptyEntries);
@@ -134,8 +130,8 @@ public class Program
 									// else , get keys[i-UriKeys.Count] - and add the current value to seedItem.JsonParameters as key-value pair
 									else
 									{
-										var keyToJson = keys[i - seedDetails.UriKeys.Count];
-										var keyType = keyTypes[i - seedDetails.UriKeys.Count];
+										var keyToJson = seedDetails.JsonKeys[i - seedDetails.UriKeys.Count][0];
+										var keyType = seedDetails.JsonKeys[i - seedDetails.UriKeys.Count][1];
 
 										switch (keyType)
 										{
@@ -169,6 +165,7 @@ public class Program
 			{
 				// Store all core info or references
 				FileInfo fileWithSamples = null;
+				FileInfo fileWithKeys = null;
 				//IList<string> keys = new List<string>();
 				for (var i = 0; i < args.Length-1; i += 2)
 				{
@@ -186,12 +183,7 @@ public class Program
 							break;
 						// Keys
 						case "-k":
-							// first - keyName
-							// 2nd - can be unique if so --> 
-								// 3rd - type - can be regex if so -->
-									// 4th onwards must be concatenated
-							// if not unique, 2nd is type --> can be regex if so -->
-								// 3rd onwards must be concatenated
+							fileWithKeys = ValidateFileInput(valueForParam);
 							break;
 						// Separator
 						case "-s":
@@ -229,19 +221,31 @@ public class Program
 					}
 				}
 
-				// TODO: process file from -e flag
-				// First line keys
-				// as of second, values
+				// Process fileWithKeys
+				using (StreamReader reader = new StreamReader(fileWithKeys.FullName))
+				{
+					string line = string.Empty;
+					while ((line = reader.ReadLine()) != null)
+					{
+						var values = line.Split(seedDetails.Separator, StringSplitOptions.RemoveEmptyEntries);
+						List<string> keyDetails = new List<string>
+						{
+							values[0],
+							values[1]
+						};
+
+						seedDetails.JsonKeys.Add(keyDetails);
+					}
+				}
+
+				// Process fileWithSamples
 				using (StreamReader reader = new StreamReader(fileWithSamples.FullName))
 				{
-					string line;
-					int lineCounter = 0;
-					IList<string> keys = new List<string>();
+					string line = string.Empty;
 
 					// Read file line by line and feed seedDetails
 					while ((line = reader.ReadLine()) != null)
 					{
-						lineCounter++;
 						// add keys to first line --> iterate through seedDetails.JsonKeys.Keys --> look up index of key in firstline list --> use that index to retrieve value
 						var seedItem = new SeedItem
 						{
@@ -250,12 +254,7 @@ public class Program
 						};
 						var values = line.Split(seedDetails.Separator, StringSplitOptions.RemoveEmptyEntries);
 
-						if (lineCounter == 1)
-						{
-							keys = values.ToList();
-						}
-
-						for (var i = 0; i < keys.Count; i++)
+						for (var i = 0; i < values.Length; i++)
 						{
 							// if i < UrlKeys.Count replace key with values from the line --> save updated URL to seedItem.Uri
 							if (i < seedDetails.UriKeys.Count)
@@ -263,31 +262,34 @@ public class Program
 								var keyToReplaceInUri = seedDetails.UriKeys[i];
 								seedItem.Url = seedDetails.DefaultUrl.Replace(keyToReplaceInUri, values[i]);
 							}
-							// else , get keys[i-UriKeys.Count] - and add the current value to seedItem.JsonParameters as key-value pair
+							// else , get JsonKeys.Keys[i-UriKeys.Count] - and add the current value to seedItem.JsonParameters as key-value pair
 							else
 							{
-								var keyToJson = keys[i];
-								var keyType = seedDetails.JsonKeys[keyToJson];
-
-								switch (keyType)
+								foreach (var key in seedDetails.JsonKeys)
 								{
-									case "string":
-										seedItem.JsonParameters.Add(keyToJson, values[i].ToString());
-										break;
-									case "int":
-										seedItem.JsonParameters.Add(keyToJson, Convert.ToInt32(values[i]));
-										break;
-									case "long":
-										seedItem.JsonParameters.Add(keyToJson, Convert.ToInt64(values[i]));
-										break;
-									case "bol":
-										seedItem.JsonParameters.Add(keyToJson, Convert.ToBoolean(values[i]));
-										break;
-									default:
-										Console.WriteLine("Invalid type ({0}) provided for key ({1})", keyType, keyToJson);
-										Environment.Exit(160);
-										break;
+									var keyName = key[0];
+									var keyType = key[1];
+									switch (keyType)
+									{
+										case "string":
+											seedItem.JsonParameters.Add(keyName, values[i].ToString());
+											break;
+										case "int":
+											seedItem.JsonParameters.Add(keyName, Convert.ToInt32(values[i]));
+											break;
+										case "long":
+											seedItem.JsonParameters.Add(keyName, Convert.ToInt64(values[i]));
+											break;
+										case "bol":
+											seedItem.JsonParameters.Add(keyName, Convert.ToBoolean(values[i]));
+											break;
+										default:
+											Console.WriteLine("Invalid type ({0}) provided for key ({1})", keyType, key);
+											Environment.Exit(160);
+											break;
+									}
 								}
+
 							}
 						}
 					}
@@ -377,9 +379,9 @@ public class Program
 		Console.WriteLine("\tNote - Default separator is comma");
 		Console.WriteLine("\tNote - Key names must be unique!");
 		Console.WriteLine("\t\tPossible key types are:" );
-		Console.WriteLine("\t\t\tstring, int, long, bol, regex - Except bol all types can be unique by preceeding it with unique keyword!");
+		Console.WriteLine("\t\t\tstring, int, long, bol - Except bol all types can be unique by adding the unique keyword to the end!");
 		Console.WriteLine("\t\t\t\tIf type is regex - a third value must be given with regex expresssion");
-		Console.WriteLine("\t\tExample: \n\t\t\tJsonParam1, int\n\t\t\tJsonParam2, long\n\t\t\tJsonParam3, unique, int\n\t\t\tJsonParam4, regex, [0-9a-z]+[0-9a-z]?");
+		Console.WriteLine("\t\tExample: \n\t\t\tJsonParam1, int\n\t\t\tJsonParam2, long\n\t\t\tJsonParam3, int\n\t\t\tJsonParam4, string, [0-9a-z]+[0-9a-z]?\n\t\t\tJsonParam5, string");
 		Console.WriteLine("\n\tExample: DbSeeder.exe {0} {1}", "-k", "keys.csv");
 
 		Console.WriteLine("\n{0, -5} : {1}", "-s", "To overwrite default separator.");
@@ -412,7 +414,6 @@ public class Program
 			"string,string,string,string", 
 			"gym,users,John,Doe", 
 			"gym,users,Hulk,Hogan");
-
 	}
 	
 	private static void ExtractParamsFromDefaultUrl(ref SeedDetails seedDetails)

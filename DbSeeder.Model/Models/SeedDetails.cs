@@ -17,7 +17,7 @@ namespace DbSeeder.Model.Models
         public IList<string> UriKeys { get; set; }
 
         // To store key - type of keys
-        public IDictionary<string, string> JsonKeys { get; set; }
+        public IList<List<string>> JsonKeys { get; set; }
 
         // Store the values of each line to be used for each HttpRequest
         public IList<SeedItem> SeedItems { get; set; }
