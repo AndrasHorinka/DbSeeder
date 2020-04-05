@@ -18,7 +18,7 @@ namespace DbSeeder.Model.Models
         // To store the response message
         public HttpResponseMessage ResponseMessage { get; set; }
 
-        private bool CheckUrl()
+        public bool CheckUrl()
         {
             return Uri.TryCreate(Url, UriKind.Absolute, out Uri uriResult)
                 && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
