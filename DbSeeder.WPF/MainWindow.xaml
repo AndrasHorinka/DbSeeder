@@ -1,0 +1,93 @@
+﻿<Window x:Class="DbSeeder.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DbSeeder.WPF"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
+        Title="DbSeeder by Andras Horinka" Height="300" Width="500">
+        <StackPanel>
+            <DockPanel VerticalAlignment="Top" Margin="5 10 5 10">
+                <Grid DockPanel.Dock="Top" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="3*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Styling definitions -->
+                    <Grid.Resources>
+                        <Style TargetType="{x:Type Button}">
+                            <Setter Property="BorderThickness" Value="3"/>
+                            <Setter Property="BorderBrush" Value="#ccd"/>
+                            <Setter Property="Background" Value="#eee"/>
+                            <Setter Property="Margin" Value="5"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="FontFamily" Value="Verdana"/>
+                            <Setter Property="FontSize" Value="18"/>
+                        </Style>
+                        <Style x:Key="Triggers" TargetType="Button">
+                            <Style.Triggers>
+                                <Trigger Property="IsPressed" Value="true">
+                                    <Setter Property = "Background" Value="#ccd"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Resources>
+
+                    <!-- Initial menu buttons -->
+                    <Button x:Name="NewQueryButton" 
+                            Grid.Column="0" 
+                            Grid.Row="0" 
+                            Content="New Query" />
+                    <Button x:Name="BrowseQueriesButton" 
+                            Grid.Column="0" 
+                            Grid.Row="1" 
+                            Content="Browse Queries" />
+
+                    <Button x:Name="ExitButton" 
+                            Grid.Column="0" 
+                            Grid.Row="2"
+                            Content="Exit" />
+
+                    <!-- Side Text Area -->
+                    <TextBlock Grid.Column="1"
+                               Grid.RowSpan="2"
+                               Margin="5"
+                               VerticalAlignment="Top"
+                               TextWrapping="Wrap">
+                        I hope DbSeeder helped you to save some precious time. 
+                        <LineBreak/> 
+                        <LineBreak/> 
+                        Please do make sure to raise new issue at the project page on
+                        <Hyperlink NavigateUri="https://github.com/AndrasHorinka/DbSeeder"
+                                   Click="Hyperlink_Click">GitHub
+                        </Hyperlink>
+                        for any found bugs or suggestions.
+                    </TextBlock>
+                    <TextBlock Grid.Column="1"
+                               Grid.Row="2"
+                               VerticalAlignment="Center"
+                               TextWrapping="Wrap"
+                               Text="Thank You for supporting me on Patreon!">
+                        
+                    </TextBlock>
+                </Grid>
+            </DockPanel>
+        <StackPanel VerticalAlignment="Bottom">
+            <Image Margin="5" 
+                       Source="E:\OneDrive\Codecool\VisualStudio\repos\PET\DbSeeder\DbSeeder.WPF\Images\Patreon_logo.jpg"
+                       Stretch="Uniform" 
+                       Height="50" 
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"/>
+        </StackPanel>
+    </StackPanel>
+        
+</Window>

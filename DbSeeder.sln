@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DbSeeder.Services", "DbSeed
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DbSeeder.Console", "DbSeeder.Console\DbSeeder.Console.csproj", "{0A948277-A6D8-43CC-A0FE-0D641C3C505C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbSeeder.WPF", "DbSeeder.WPF\DbSeeder.WPF.csproj", "{B03903E5-31F3-4D34-9485-9BC051EC1D87}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{0A948277-A6D8-43CC-A0FE-0D641C3C505C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A948277-A6D8-43CC-A0FE-0D641C3C505C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A948277-A6D8-43CC-A0FE-0D641C3C505C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B03903E5-31F3-4D34-9485-9BC051EC1D87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B03903E5-31F3-4D34-9485-9BC051EC1D87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B03903E5-31F3-4D34-9485-9BC051EC1D87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B03903E5-31F3-4D34-9485-9BC051EC1D87}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
