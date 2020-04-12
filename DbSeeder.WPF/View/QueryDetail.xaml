@@ -1,0 +1,187 @@
+﻿<Window x:Class="DbSeeder.WPF.View.QueryDetail"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DbSeeder.WPF.View"
+        mc:Ignorable="d"
+        Title="QueryDetail" Height="450" Width="800"
+        WindowStartupLocation="CenterScreen"
+        Closing="Window_Closing"
+        Background="#FF228DE6">
+    <StackPanel>
+        <Grid Margin="2 5 5 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <!--<ColumnDefinition Width="*"/>-->
+                <!--<ColumnDefinition Width="*"/>-->
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Styling definitions -->
+            <Grid.Resources>
+                <!-- TextBlock Styling -->
+                <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="Padding" Value="2"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                    <Setter Property="HorizontalAlignment" Value="Left"/>
+                    <Setter Property="Margin" Value="5 1 5 5"/>
+                    <Setter Property="FontFamily" Value="Verdana"/>
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </Style>
+                
+                <!-- TextBox Styling (input field) -->
+                <Style TargetType="{x:Type TextBox}">
+                    <Setter Property="Padding" Value="2"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                    <Setter Property="FontStretch" Value="Expanded"/>
+                    <Setter Property="Margin" Value="5 1 5 5"/>
+                    <Setter Property="FontWeight" Value="DemiBold"/>
+                    <Setter Property="FontFamily" Value="Verdana"/>
+                    <Setter Property="FontSize" Value="12"/>
+                </Style>
+                
+                <!-- Image / Icon styling -->
+                <Style TargetType="{x:Type Image}">
+                    <Setter Property="Width" Value="18"/>
+                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                    <Setter Property="VerticalAlignment" Value="Top"/>
+                    <Setter Property="Margin" Value="2"/>
+                </Style>
+                
+                <!-- ComboBox styling -->
+                <Style TargetType="{x:Type ComboBox}">
+                    <Setter Property="Margin" Value="5 0 0 3"/>
+                    <Setter Property="SelectedIndex" Value="0"/>
+                    <Setter Property="HorizontalAlignment" Value="Left"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                </Style>
+
+                <!-- Button Styling -->
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="BorderThickness" Value="3"/>
+                    <Setter Property="BorderBrush" Value="#ccd"/>
+                    <Setter Property="Background" Value="#eee"/>
+                    <Setter Property="Margin" Value="5"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="FontFamily" Value="Verdana"/>
+                    <Setter Property="FontSize" Value="18"/>
+                </Style>
+
+            </Grid.Resources>
+
+            <!-- Header-->
+            <TextBlock
+                Grid.Row="0"
+                Grid.Column="0"
+                Text="Name"/>
+
+            <TextBox
+                Grid.Row="0"
+                Grid.Column="1"
+                Grid.ColumnSpan="5"
+                Text="{Binding QueryName}"/>
+
+            <Image
+                Grid.Row="0"
+                Grid.Column="6"
+                Source="E:\OneDrive\Codecool\VisualStudio\repos\PET\DbSeeder\DbSeeder.WPF\Images\help-round-button.png"/>
+
+            <TextBlock
+                Grid.Row="0"
+                Grid.Column="7"
+                Grid.ColumnSpan="5"
+                HorizontalAlignment="Right"
+                x:Name="DateField"/>
+
+            <!-- Input fields : Line 1 -->
+            <TextBlock 
+                Grid.Row="1"
+                Grid.Column="0"
+                Text="URI" />
+
+            <ComboBox Grid.Row="1"
+                      Grid.Column="1"
+                      FontWeight="Bold"
+                      FontSize="12"
+                      FontFamily="Verdana">
+                <ComboBoxItem>POST</ComboBoxItem>
+                <ComboBoxItem>PATCH</ComboBoxItem>
+                <ComboBoxItem>PUT</ComboBoxItem>
+                <ComboBoxItem>DELETE</ComboBoxItem>
+            </ComboBox>
+
+            <TextBox 
+                Grid.Row="1"
+                Grid.Column="2"
+                Grid.ColumnSpan="7"
+                x:Name="Uri"/>
+
+            <TextBlock 
+                Grid.Row="1"
+                Grid.Column="2"
+                Grid.ColumnSpan="7"
+                IsHitTestVisible="False" 
+                Text="Example: https://localhost:5001/{uriParam1}/{uriParam2}" 
+                VerticalAlignment="Center" 
+                HorizontalAlignment="Stretch" 
+                Margin="10,0,0,0" 
+                Foreground="DarkGray">
+                <TextBlock.Style>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Text, ElementName=Uri}" Value="">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+
+            <Image
+                Grid.Row="1"
+                Grid.Column="9"
+                Source="E:\OneDrive\Codecool\VisualStudio\repos\PET\DbSeeder\DbSeeder.WPF\Images\help-round-button.png"/>
+
+            <Button 
+                Grid.Row="2"
+                Grid.Column="1"
+                Grid.ColumnSpan="4"
+                Content="Add Field"
+                x:Name="AddFieldButton"
+                />
+            
+            <Button 
+                Grid.Row="2"
+                Grid.Column="5"
+                Grid.ColumnSpan="4"
+                Content="Add Values"
+                x:Name="AddValuesButton"
+                />
+        </Grid>
+
+        <!-- List for fields for building JSON -->
+
+    </StackPanel>
+</Window>

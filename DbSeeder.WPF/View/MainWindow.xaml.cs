@@ -1,9 +1,7 @@
-﻿using System;
+﻿using DbSeeder.WPF.View;
+using System;
 using System.Diagnostics;
-using System.IO;
 using System.Windows;
-using System.Windows.Documents;
-using System.Windows.Navigation;
 
 namespace DbSeeder.WPF
 {
@@ -33,6 +31,12 @@ namespace DbSeeder.WPF
             };
             Process.Start(psi);
 
+        }
+
+        private void NewQueryButton_Click(object sender, RoutedEventArgs e)
+        {
+            var queryDetail = new QueryDetail(this);
+            queryDetail.ShowDialog();
         }
     }
 }

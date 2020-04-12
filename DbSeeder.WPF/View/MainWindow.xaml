@@ -6,7 +6,9 @@
         xmlns:local="clr-namespace:DbSeeder.WPF"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Title="DbSeeder by Andras Horinka" Height="300" Width="500">
+        Title="DbSeeder by Andras Horinka" Height="Auto" Width="500"
+        x:Name="StartUpWindow"
+        Visibility="Visible">
         <StackPanel>
             <DockPanel VerticalAlignment="Top" Margin="5 10 5 10">
                 <Grid DockPanel.Dock="Top" >
@@ -15,6 +17,7 @@
                         <ColumnDefinition Width="3*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition />
                         <RowDefinition />
                         <RowDefinition />
                         <RowDefinition />
@@ -45,7 +48,8 @@
                     <Button x:Name="NewQueryButton" 
                             Grid.Column="0" 
                             Grid.Row="0" 
-                            Content="New Query" />
+                            Content="New Query"
+                            Click="NewQueryButton_Click"/>
                     <Button x:Name="BrowseQueriesButton" 
                             Grid.Column="0" 
                             Grid.Row="1" 
@@ -54,11 +58,16 @@
                     <Button x:Name="ExitButton" 
                             Grid.Column="0" 
                             Grid.Row="2"
+                            Content="About" />  
+                    
+                    <Button x:Name="About" 
+                            Grid.Column="0" 
+                            Grid.Row="3"
                             Content="Exit" />
 
                     <!-- Side Text Area -->
                     <TextBlock Grid.Column="1"
-                               Grid.RowSpan="2"
+                               Grid.RowSpan="3"
                                Margin="5"
                                VerticalAlignment="Top"
                                TextWrapping="Wrap">
@@ -71,22 +80,40 @@
                         </Hyperlink>
                         for any found bugs or suggestions.
                     </TextBlock>
-                    <TextBlock Grid.Column="1"
-                               Grid.Row="2"
-                               VerticalAlignment="Center"
-                               TextWrapping="Wrap"
-                               Text="Thank You for supporting me on Patreon!">
-                        
-                    </TextBlock>
+                    
                 </Grid>
             </DockPanel>
         <StackPanel VerticalAlignment="Bottom">
-            <Image Margin="5" 
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Margin="5"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Left"
+                           TextWrapping="Wrap"
+                           Text="Thank You for supporting me on Patreon!">
+                </TextBlock>
+
+                <Image Margin="5" 
+                       Grid.Column="1"
                        Source="E:\OneDrive\Codecool\VisualStudio\repos\PET\DbSeeder\DbSeeder.WPF\Images\Patreon_logo.jpg"
                        Stretch="Uniform" 
                        Height="50" 
                        HorizontalAlignment="Right"
                        VerticalAlignment="Center"/>
+            </Grid>
+            
+        </StackPanel>
+
+        <StackPanel>
+            <!-- ide jönnek a logok-->
         </StackPanel>
     </StackPanel>
         
