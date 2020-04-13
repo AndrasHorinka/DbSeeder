@@ -38,5 +38,11 @@ namespace DbSeeder.WPF.View
                 textBox.Text = UriExample;
             }
         }
+
+        private void AddFieldButton_Click(object sender, RoutedEventArgs e)
+        {
+            var addField = new AddField(this);
+            addField.ShowDialog();
+        }
     }
 }
