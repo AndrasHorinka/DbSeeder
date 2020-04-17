@@ -12,7 +12,18 @@
         WindowStartupLocation="CenterScreen"
         Closing="Window_Closing">
     <StackPanel>
-        
+        <StackPanel.Resources>
+            <!-- Button Styling -->
+            <Style TargetType="{x:Type Button}">
+                <Setter Property="BorderThickness" Value="3"/>
+                <Setter Property="BorderBrush" Value="#ccd"/>
+                <Setter Property="Background" Value="#eee"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontFamily" Value="Verdana"/>
+                <Setter Property="FontSize" Value="18"/>
+            </Style>
+        </StackPanel.Resources>
         
         <Grid Margin="2 5 5 0">
             <Grid.ColumnDefinitions>
@@ -72,9 +83,18 @@
                     <Setter Property="Margin" Value="10 5"/>
                     <Setter Property="FontSize" Value="14"/>
                     <Setter Property="FontFamily" Value="Verdana"/>
+                    <Setter Property="BorderThickness" Value="2"/>
                     <Setter Property="Grid.ColumnSpan" Value="2"/>
                 </Style>
 
+                <Style TargetType="{x:Type RadioButton}"
+                       x:Key="invisibleRadioButton"
+                       BasedOn="{StaticResource baseRadioButton}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <EventSetter Event="Checked" Handler="FieldTypeSelectors_Checked"/>
+                </Style>
+
+                <!-- Checkbox Styling-->
                 <Style x:Key="BaseCheckBox" TargetType="{x:Type CheckBox}">
                     <Setter Property="VerticalAlignment" Value="Center"/>
                     <Setter Property="Margin" Value="10 5"/>
@@ -94,13 +114,15 @@
                 Grid.Row="0"
                 Grid.Column="1"
                 Grid.ColumnSpan="5"
-                Text="{Binding FieldName}"/>
+                x:Name="KeyName"/>
 
+            <!-- KeySelectors-->
             <RadioButton
-                x:Name="FieldType"
                 GroupName="KeySelectors"
+                x:Name="FieldTypeSelected"
                 Style="{StaticResource baseRadioButton}"
                 Content="Field"
+                Checked="KeySelectors_Checked"
                 Grid.Row="1"
                 Grid.Column="1">
             </RadioButton>
@@ -108,6 +130,7 @@
                 GroupName="KeySelectors"
                 Style="{StaticResource baseRadioButton}"
                 Content="Map"
+                Checked="KeySelectors_Checked"
                 Grid.Row="2"
                 Grid.Column="1">
             </RadioButton>
@@ -115,20 +138,22 @@
                 GroupName="KeySelectors"
                 Style="{StaticResource baseRadioButton}"
                 Content="Array"
+                Checked="KeySelectors_Checked"
                 Grid.Row="3"
                 Grid.Column="1">
             </RadioButton>
 
+            <!-- FieldTypeSelectors -->
             <RadioButton
                 GroupName="FieldTypeSelectors"
                 Content="String"
                 Grid.Row="1"
                 Grid.Column="3">
                 <RadioButton.Style>
-                    <Style TargetType="{x:Type RadioButton}" BasedOn="{StaticResource baseRadioButton}">
-                        <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style TargetType="{x:Type RadioButton}" 
+                           BasedOn="{StaticResource invisibleRadioButton}">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding ElementName=FieldType, Path=IsChecked}" Value="True">
+                            <DataTrigger Binding="{Binding ElementName=FieldTypeSelected, Path=IsChecked}" Value="True">
                                 <Setter Property="Visibility" Value="Visible"/>
                             </DataTrigger>
                      </Style.Triggers>
@@ -141,10 +166,10 @@
                 Grid.Row="2"
                 Grid.Column="3">
                 <RadioButton.Style>
-                    <Style TargetType="{x:Type RadioButton}" BasedOn="{StaticResource baseRadioButton}">
-                        <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style TargetType="{x:Type RadioButton}" 
+                           BasedOn="{StaticResource invisibleRadioButton}">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding ElementName=FieldType, Path=IsChecked}" Value="True">
+                            <DataTrigger Binding="{Binding ElementName=FieldTypeSelected, Path=IsChecked}" Value="True">
                                 <Setter Property="Visibility" Value="Visible"/>
                             </DataTrigger>
                         </Style.Triggers>
@@ -157,10 +182,9 @@
                 Grid.Row="1"
                 Grid.Column="5">
                 <RadioButton.Style>
-                    <Style TargetType="{x:Type RadioButton}" BasedOn="{StaticResource baseRadioButton}">
-                        <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style TargetType="{x:Type RadioButton}" BasedOn="{StaticResource invisibleRadioButton}">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding ElementName=FieldType, Path=IsChecked}" Value="True">
+                            <DataTrigger Binding="{Binding ElementName=FieldTypeSelected, Path=IsChecked}" Value="True">
                                 <Setter Property="Visibility" Value="Visible"/>
                             </DataTrigger>
                         </Style.Triggers>
@@ -173,8 +197,7 @@
                 Grid.Row="2"
                 Grid.Column="5">
                 <RadioButton.Style>
-                    <Style TargetType="{x:Type RadioButton}" BasedOn="{StaticResource baseRadioButton}">
-                        <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style TargetType="{x:Type RadioButton}" BasedOn="{StaticResource invisibleRadioButton}">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding ElementName=FieldType, Path=IsChecked}" Value="True">
                                 <Setter Property="Visibility" Value="Visible"/>
@@ -184,7 +207,40 @@
                 </RadioButton.Style>
             </RadioButton>
         </Grid>
+        <StackPanel>
+            <Grid Margin="30 70 30 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock 
+                    Grid.Row="0"
+                    Grid.ColumnSpan="2"
+                    Grid.Column="0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontFamily="Verdana"
+                    FontWeight="DemiBold"
+                    x:Name="ErrorMsgSlot"
+                    Visibility="Hidden"/>
+
+                <Button Content="Cancel"
+                        Grid.Column="0"
+                        Grid.Row="1"/>
+                
+                <Button Content="Save Entry"
+                        Grid.Column="1"
+                        Grid.Row="1"
+                        Click="Save_Entry"/>
+            </Grid>
+            
+        </StackPanel>
 
     </StackPanel>
 </Window>
