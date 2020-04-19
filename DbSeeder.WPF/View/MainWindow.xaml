@@ -53,6 +53,7 @@
                     <Button x:Name="BrowseQueriesButton" 
                             Grid.Column="0" 
                             Grid.Row="1" 
+                            Click="BrowseQueriesButton_Click"
                             Content="Browse Queries" />
 
                     <Button x:Name="ExitButton" 

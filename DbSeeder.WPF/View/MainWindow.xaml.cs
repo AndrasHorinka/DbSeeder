@@ -35,8 +35,14 @@ namespace DbSeeder.WPF
 
         private void NewQueryButton_Click(object sender, RoutedEventArgs e)
         {
-            var queryDetail = new QueryDetail(this);
-            queryDetail.ShowDialog();
+
+        }
+
+        private void BrowseQueriesButton_Click(object sender, RoutedEventArgs e)
+        {
+            var queryView = new QueryView();
+            queryView.Show();
+
         }
     }
 }

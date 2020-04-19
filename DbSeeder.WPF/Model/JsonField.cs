@@ -1,16 +1,15 @@
-﻿using System;
-
-namespace DbSeeder.WPF.Model
+﻿namespace DbSeeder.WPF.Model
 {
-    public class JsonField<T>
+    public class JsonField
     {
         public string FieldName { get; set; }
-        public T FieldValue { get; set; }
+        public string FieldType { get; set; }
+        public object FieldValue { get; set; }
 
-        public JsonField(string fieldName, T fieldValue)
+        public JsonField(string fieldName, string fieldType)
         {
             FieldName = fieldName;
-            FieldValue = fieldValue;
+            FieldType = fieldType;
         }
 
     }
