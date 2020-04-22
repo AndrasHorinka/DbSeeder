@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using DbSeeder.WPF.Controller;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -22,26 +23,28 @@ namespace DbSeeder.WPF.View
         public QueryView()
         {
             InitializeComponent();
-            var x = new Dictionary<string, string>()
-            {
-                {"subKey 4a", "SubKeyType 4a" },
-                {"subKey 4b", "SubKeyType 4b" }
-            };
+            DataContext = new QueryViewModel();
 
-            var y = new List<string>()
-            {
-                "subList5a",
-                "subList5b",
-            };
+            //var x = new Dictionary<string, string>()
+            //{
+            //    {"subKey 4a", "SubKeyType 4a" },
+            //    {"subKey 4b", "SubKeyType 4b" }
+            //};
 
-            JsonFields = new Dictionary<string, object>()
-            {
-                { "key1", "keyType1" },
-                { "key2", "keyType2" },
-                { "key3", "keyType3" },
-                { "key4", x },
-                { "key5", y }
-            };
+            //var y = new List<string>()
+            //{
+            //    "subList5a",
+            //    "subList5b",
+            //};
+
+            //JsonFields = new Dictionary<string, object>()
+            //{
+            //    { "key1", "keyType1" },
+            //    { "key2", "keyType2" },
+            //    { "key3", "keyType3" },
+            //    { "key4", x },
+            //    { "key5", y }
+            //};
         }
         #endregion
 
@@ -49,35 +52,34 @@ namespace DbSeeder.WPF.View
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var counter = 0;
-            foreach (var key in JsonFields.Keys)
-            {
-                counter++;
+            //var counter = 0;
+            //foreach (var key in JsonFields.Keys)
+            //{
+            //    counter++;
 
-                var item = new TreeViewItem()
-                {
-                    Header = key,
-                    IsExpanded = true,
-                    ClipToBounds = true
-                };
+            //    var item = new TreeViewItem()
+            //    {
+            //        Header = key,
+            //        IsExpanded = true,
+            //        ClipToBounds = true
+            //    };
 
-                if (counter % 2 == 0)
-                {
-                    var subItem = new TreeViewItem()
-                    {
-                        Header = $"SubKey of {item.Header}",
-                        IsExpanded = true,
-                        ClipToBounds = true
-                    };
+            //    if (counter % 2 == 0)
+            //    {
+            //        var subItem = new TreeViewItem()
+            //        {
+            //            Header = $"SubKey of {item.Header}",
+            //            IsExpanded = true,
+            //            ClipToBounds = true
+            //        };
 
-                    item.Items.Add(subItem);
-                }
+            //        item.Items.Add(subItem);
+            //    }
 
-                item.Expanded += Key_Expanded;
+            //    item.Expanded += Key_Expanded;
 
-                //JsonView.Items.Add(item);
-                JsonView.Items.Add(item);
-            }
+            //    JsonView.Items.Add(item);
+            //}
         }
 
         private void Key_Expanded(object sender, RoutedEventArgs e)
@@ -94,16 +96,6 @@ namespace DbSeeder.WPF.View
             {
                 FieldType = null;
             }
-        }
-
-        private void KeySelectors_Checked(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void UniqueCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-
         }
     }
 }

@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DbSeeder.WPF.View"
+        xmlns:self="clr-namespace:DbSeeder.WPF.Controller"
         mc:Ignorable="d"
         Title="QueryView" 
         Height="Auto" 
@@ -62,13 +63,13 @@
                 Grid.Row="0"
                 Grid.Column="1"
                 Grid.ColumnSpan="2"
-                Text="Bind Here Query Name"/>
+                Text="{Binding QueryName}"/>
 
             <TextBlock
                 Grid.Row="0"
                 Grid.Column="4"
                 HorizontalAlignment="Right"
-                x:Name="DateField"/>
+                Text="{Binding CurrentMoment}"/>
 
             <!-- Input fields : Line 1 -->
             <TextBlock 
@@ -122,8 +123,13 @@
         <!-- TreeView for the Json-->
         <StackPanel DockPanel.Dock="Top">
             <TreeView x:Name="JsonView"
-                        HorizontalContentAlignment="Stretch"
-                        HorizontalAlignment="Stretch">
+                      HorizontalContentAlignment="Stretch"
+                      HorizontalAlignment="Stretch">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type self:QueryViewModel}" ItemsSource="{Binding JsonEntries}">
+                        
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
                 <TreeView.Resources>
                     <Style TargetType="{x:Type TreeViewItem}">
                         <Setter Property="HeaderTemplate">
@@ -203,7 +209,7 @@
                         <Setter Property="FontFamily" Value="Verdana"/>
                         <Setter Property="BorderThickness" Value="2"/>
                         <Setter Property="Grid.ColumnSpan" Value="2"/>
-                        <EventSetter Event="Checked" Handler="KeySelectors_Checked"/>
+                        <!--<EventSetter Event="Checked" Handler="KeySelectors_Checked"/>-->
                     </Style>
                     
                     <Style TargetType="{x:Type RadioButton}"
@@ -214,7 +220,7 @@
                         <Setter Property="FontFamily" Value="Verdana"/>
                         <Setter Property="Grid.ColumnSpan" Value="2"/>
                         <Setter Property="Visibility" Value="Collapsed"/>
-                        <EventSetter Event="Checked" Handler="FieldTypeSelectors_Checked"/>
+                        <!-- EventSetter Event="Checked" Handler="FieldTypeSelectors_Checked"/> -->
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding ElementName=FieldTypeSelected, Path=IsChecked}"
                                          Value="True">
@@ -284,8 +290,8 @@
                             Grid.Column="1"
                             Orientation="Horizontal">
                     <CheckBox x:Name="UniqueCheckBox"
-                              Content="Unique"
-                              Checked="UniqueCheckBox_Checked"/>
+                              Content="Unique"/>
+                    <!--Checked="UniqueCheckBox_Checked"/>-->
                     <CheckBox x:Name="RegexCheckBox"
                               Content="Regex"/>
                 </StackPanel>
