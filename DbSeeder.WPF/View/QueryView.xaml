@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DbSeeder.WPF.View"
-        xmlns:self="clr-namespace:DbSeeder.WPF.Controller"
+        xmlns:self="clr-namespace:DbSeeder.WPF.Model"
         mc:Ignorable="d"
         Title="QueryView" 
         Height="Auto" 
@@ -95,7 +95,8 @@
             <TextBox Grid.Row="1"
                      Grid.Column="2"
                      Grid.ColumnSpan="2"
-                     x:Name="Uri"/>
+                     x:Name="Uri"
+                     Text="{Binding DefaultUri}"/>
 
             <TextBlock Grid.Row="1"
                        Grid.Column="2"
@@ -124,7 +125,8 @@
         <StackPanel DockPanel.Dock="Top">
             <TreeView x:Name="JsonView"
                       HorizontalContentAlignment="Stretch"
-                      HorizontalAlignment="Stretch">
+                      HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding Items}">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type self:QueryViewModel}" ItemsSource="{Binding JsonEntries}">
                         
@@ -197,6 +199,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Grid.Resources>
@@ -239,16 +242,32 @@
                 </Grid.Resources>
 
                 <!-- KeyName-->
+
                 <TextBlock Grid.Row="0"
+                           Grid.Column="0"
+                           Text="Parent Key"/>
+                <ComboBox Grid.Row="0"
+                          Grid.Column="1"
+                          ItemsSource="{Binding Path=Items.Keys}"
+                          SelectedIndex="0"
+                          Margin="5 0 0 3"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Center"
+                          FontSize="12"
+                          FontFamily="Verdana"
+                          x:Name="ParentKeyName">
+                </ComboBox>
+                
+                <TextBlock Grid.Row="1"
                            Grid.Column="0"
                            Text="Key Name"/>
 
-                <TextBox Grid.Row="0"
+                <TextBox Grid.Row="1"
                          Grid.Column="1"
                          x:Name="KeyName"/>
 
                 <!-- KeySelectors-->
-                <StackPanel Grid.Row="1"
+                <StackPanel Grid.Row="2"
                             Grid.Column="1"
                             Orientation="Horizontal">
                     <RadioButton GroupName="KeySelectors"
@@ -264,7 +283,7 @@
                 </StackPanel>
                 
                 <!-- FieldTypeSelectors -->
-                <StackPanel Grid.Row="2"
+                <StackPanel Grid.Row="3"
                             Grid.Column="1"
                             Orientation="Horizontal">
                     <RadioButton GroupName="FieldTypeSelectors"
@@ -286,7 +305,7 @@
                 </StackPanel>
                 
                 <!-- ChecBoxes -->
-                <StackPanel Grid.Row="3"
+                <StackPanel Grid.Row="4"
                             Grid.Column="1"
                             Orientation="Horizontal">
                     <CheckBox x:Name="UniqueCheckBox"
@@ -296,7 +315,7 @@
                               Content="Regex"/>
                 </StackPanel>
 
-                <Grid Grid.Row="4"
+                <Grid Grid.Row="5"
                       Grid.Column="1">
                     <TextBox x:Name="RegexExpression"
                              Margin="10 5"

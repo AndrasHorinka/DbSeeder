@@ -51,6 +51,23 @@ namespace DbSeeder.WPF.Model
             }
         }
 
+        private string _ParentField = string.Empty;
+        /// <summary>
+        /// Name of the parent key in the JSON
+        /// </summary>
+        public string ParentField
+        {
+            get { return _ParentField; }
+            set
+            {
+                // return if no change occurs
+                if (_ParentField == value) return;
+
+                // update to new value and launch event
+                _ParentField = value;
+                PropertyChanged(this, new PropertyChangedEventArgs(nameof(ParentField)));
+            }
+        }
 
         private ObservableCollection<JsonFieldViewModel> _Children;
         /// <summary>
@@ -193,6 +210,6 @@ namespace DbSeeder.WPF.Model
 
         #endregion
 
-        
+        // Create a Form in WPF that represents add Fieldkknhjhijyc fg bgyudrtm
     }
 }

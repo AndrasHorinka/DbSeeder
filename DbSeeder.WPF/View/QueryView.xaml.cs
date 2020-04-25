@@ -1,4 +1,4 @@
-﻿using DbSeeder.WPF.Controller;
+﻿using DbSeeder.WPF.Model;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
