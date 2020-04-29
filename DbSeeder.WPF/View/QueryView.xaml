@@ -3,15 +3,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DbSeeder.WPF.View"
-        xmlns:self="clr-namespace:DbSeeder.WPF.Model"
         mc:Ignorable="d"
         Title="QueryView" 
         Height="Auto" 
         Width="800"
         x:Name="QueryViewWindow"
-        Loaded="Window_Loaded"
         Topmost="True">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
+    </Window.Resources>
     <DockPanel Background="#FF228DE6">
         <DockPanel.Resources>
             <!-- TextBlock Styling -->
@@ -49,6 +49,7 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
@@ -119,6 +120,31 @@
                     </Style>
                 </TextBlock.Style>
             </TextBlock>
+
+            <!-- Buttons -->
+            <StackPanel Grid.Row="4"
+                        Grid.Column="1"
+                        Grid.ColumnSpan="2"
+                        Orientation="Horizontal">
+                <Button Margin="5"
+                        Content="Add new field"
+                        FontFamily="Verdana"
+                        FontSize="18"
+                        FontWeight="Bold"
+                        BorderThickness="3"
+                        Background="Khaki"
+                        BorderBrush="DarkKhaki"
+                        Command="{Binding ToggleAddFieldZoneVisibility}"/>
+                <Button Margin="5"
+                        Content="Add Value"
+                        FontFamily="Verdana"
+                        FontSize="18"
+                        FontWeight="Bold"
+                        BorderThickness="3"
+                        Background="Khaki"
+                        BorderBrush="DarkKhaki"/>
+            </StackPanel>
+           
         </Grid>
         
         <!-- TreeView for the Json-->
@@ -127,11 +153,25 @@
                       HorizontalContentAlignment="Stretch"
                       HorizontalAlignment="Stretch"
                       ItemsSource="{Binding Items}">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="True"/>
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                
                 <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate DataType="{x:Type self:QueryViewModel}" ItemsSource="{Binding JsonEntries}">
+                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center"
+                                       HorizontalAlignment="Left"
+                                       Text="{Binding FieldName}"/>
+                        </StackPanel>
                         
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
+                
+                
+                
                 <TreeView.Resources>
                     <Style TargetType="{x:Type TreeViewItem}">
                         <Setter Property="HeaderTemplate">
@@ -153,7 +193,7 @@
                                         <!-- Keys -->
                                         <Label Grid.Column="0"
                                                HorizontalAlignment="Stretch" 
-                                               Content="{Binding}"
+                                               Content="Key Binding?"
                                                Margin="3" 
                                                BorderBrush="Black" 
                                                BorderThickness="2"/>
@@ -163,16 +203,6 @@
                                                Margin="3" 
                                                BorderBrush="Black" 
                                                BorderThickness="2"/>
-                                        
-                                        <!-- Buttons -->
-                                        <Button Content="Add Field"
-                                                Grid.Column="2" 
-                                                Margin="5"
-                                                HorizontalAlignment="Stretch"/>
-                                        <Button Content="Add Value"
-                                                Grid.Column="3" 
-                                                Margin="5"
-                                                HorizontalAlignment="Stretch"/>
                                     </Grid>
                                 </DataTemplate>
                             </Setter.Value>
@@ -186,7 +216,8 @@
         <StackPanel x:Name="AddFieldZone" 
                     DockPanel.Dock="Top"
                     Tag="KeyName" 
-                    Visibility="Visible"> <!-- To be updated to collapsed, add eventlistener when Add field button is added to open it. Also add as TAG the keyname as binding - when add Field button is pressed-->
+                    Background="CornflowerBlue"
+                    Visibility="{Binding AddFieldZoneVisibility, Converter={StaticResource VisibleIfTrueConverter}}">
             <Grid Margin="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="100"/>
@@ -194,6 +225,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -212,7 +244,6 @@
                         <Setter Property="FontFamily" Value="Verdana"/>
                         <Setter Property="BorderThickness" Value="2"/>
                         <Setter Property="Grid.ColumnSpan" Value="2"/>
-                        <!--<EventSetter Event="Checked" Handler="KeySelectors_Checked"/>-->
                     </Style>
                     
                     <Style TargetType="{x:Type RadioButton}"
@@ -223,7 +254,6 @@
                         <Setter Property="FontFamily" Value="Verdana"/>
                         <Setter Property="Grid.ColumnSpan" Value="2"/>
                         <Setter Property="Visibility" Value="Collapsed"/>
-                        <!-- EventSetter Event="Checked" Handler="FieldTypeSelectors_Checked"/> -->
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding ElementName=FieldTypeSelected, Path=IsChecked}"
                                          Value="True">
@@ -248,7 +278,7 @@
                            Text="Parent Key"/>
                 <ComboBox Grid.Row="0"
                           Grid.Column="1"
-                          ItemsSource="{Binding Path=Items.Keys}"
+                          ItemsSource="{Binding Keys}"
                           SelectedIndex="0"
                           Margin="5 0 0 3"
                           HorizontalAlignment="Stretch"
@@ -324,7 +354,7 @@
                                 <Style TargetType="{x:Type TextBox}">
                                     <Setter Property="Visibility" Value="Collapsed"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ElementName=RegexCheckBox,   Path=IsChecked}" Value="True">
+                                        <DataTrigger Binding="{Binding ElementName=RegexCheckBox, Path=IsChecked}" Value="True">
                                             <Setter Property="Visibility" Value="Visible"/>
                                         </DataTrigger>
                                     </Style.Triggers>
@@ -343,16 +373,42 @@
                                 <Style TargetType="{x:Type TextBlock}">
                                     <Setter Property="Visibility" Value="Collapsed"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ElementName=RegexCheckBox,   Path=IsChecked}" Value="True">
+                                        <DataTrigger Binding="{Binding ElementName=RegexCheckBox, Path=IsChecked}" Value="True">
                                             <Setter Property="Visibility" Value="Visible"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-
-
                 </Grid>
+                
+                <!-- Buttons to cancel - add field -->
+                <StackPanel Grid.Row="6"
+                            Grid.Column="1"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="10 0 50 0">
+                    <Button Margin="20 0"
+                            Content="Add field"
+                            FontFamily="Verdana"
+                            FontSize="18"
+                            FontWeight="Bold"
+                            BorderThickness="3"
+                            Background="Khaki"
+                            Command="{Binding Path=AddNewJsonFieldCommand}"
+                            BorderBrush="DarkKhaki"/>
+                    <!--Click="{Binding AddNewJsonFieldCommand}"/>-->
+                    <Button Margin="20 0"
+                            Content="Cancel"
+                            FontFamily="Verdana"
+                            FontSize="18"
+                            FontWeight="Bold"
+                            BorderThickness="3"
+                            Background="Khaki"
+                            BorderBrush="DarkKhaki"
+                        />
+                </StackPanel>
+                            
 
             </Grid>
         </StackPanel>

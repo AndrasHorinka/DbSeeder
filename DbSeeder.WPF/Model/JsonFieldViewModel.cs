@@ -154,7 +154,7 @@ namespace DbSeeder.WPF.Model
                     Expand();
                 }
                 // if UI instructs to collapse
-                else ClearChildren();
+                else return;
             }
         }
 
@@ -170,30 +170,24 @@ namespace DbSeeder.WPF.Model
         /// <summary>
         /// Default constructor
         /// </summary>
-        public JsonFieldViewModel(FieldTypes fieldType, string fieldName)
+        public JsonFieldViewModel(FieldTypes fieldType = FieldTypes.Field, string fieldName = "")
         {
             ExpandCommand = new RelayCommand(Expand);
             FieldType = fieldType;
             FieldName = fieldName;
+            Children = new ObservableCollection<JsonFieldViewModel>();
         }
 
         #endregion
 
         #region Helper Methods
 
-        // Reset Children
-        private void ClearChildren()
-        {
-            this.Children = new ObservableCollection<JsonFieldViewModel>();
-
-            // Show the expand arrow if FieldType is a map or array
-            if (CanExpand) Children.Add(null);
-        }
-
         // Expand this item to get all children
         private void Expand()
         {
             if (!CanExpand) return;
+
+            Children.Add(new JsonFieldViewModel());
             // 45 min
             // TODO: How to add children? Its not a living code, but already there. 
             //Children = new ObservableCollection<JsonFieldViewModel>();

@@ -1,18 +1,11 @@
 ﻿using DbSeeder.WPF.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Net.Http;
 using System.Windows.Input;
 
-/// <summary>
-/// DirectoryStructure are the methods to retrieve children, fix name - it stores a list of DirectoryItems
-/// DirectoryItemType - is an enum - storing the Drive/folder/file --> like Method
-/// A directoryItem stands for the Query -- 
-///     storing info about the query and the methods to be executed independent from the UI
-///     It stores DirectoryItemType (a.k.a Method), URI
-///     
-/// </summary>
 namespace DbSeeder.WPF.Model
 {
     /// <summary>
@@ -33,9 +26,13 @@ namespace DbSeeder.WPF.Model
         public QueryViewModel()
         {
             Items = new ObservableCollection<JsonFieldViewModel>();
-            SetMethodCommand = new RelayCommand(Method_Set);
-            RegexCheckedCommand = new RelayCommand(Regex_Checked);
-            UniqueCheckedCommand = new RelayCommand(Unique_Checked);
+            NewField = new JsonFieldViewModel();
+            AddNewJsonFieldCommand = new RelayCommand(Add_Item);
+            ToggleAddFieldZoneVisibility = new RelayCommand(Toggle_AddFieldVisibility);
+            Keys = new List<string>
+            {
+                "root"
+            };
 
             GenerateSampleData();
         }
@@ -43,6 +40,22 @@ namespace DbSeeder.WPF.Model
         #endregion
 
         #region Fields and Properties
+
+        private IList<string> _Keys;
+        public IList<string> Keys
+        {
+            get
+            {
+                return _Keys;
+            }
+            set
+            {
+                if (_Keys == value) return;
+
+                _Keys = value;
+                PropertyChanged(this, new PropertyChangedEventArgs(nameof(Keys)));
+            }
+        }
 
         /// <summary>
         /// Snapshot of time when window was opened
@@ -85,7 +98,7 @@ namespace DbSeeder.WPF.Model
             {
                 return _Items;
             }
-            set
+            private set
             {
                 // return if no change occurs
                 if (_Items == value) return;
@@ -133,6 +146,24 @@ namespace DbSeeder.WPF.Model
             }
         }
 
+        private bool _AddFieldZoneVisibility = false;
+        /// <summary>
+        /// Visibility controller for AddFieldZone
+        /// </summary>
+        public bool AddFieldZoneVisibility
+        {
+            get
+            {
+                return _AddFieldZoneVisibility;
+            }
+            set
+            {
+                if (_AddFieldZoneVisibility == value) return;
+
+                _AddFieldZoneVisibility = value;
+                PropertyChanged(this, new PropertyChangedEventArgs(nameof(AddFieldZoneVisibility)));
+            }
+        }
         /// <summary>
         /// The new Field to be added to 
         /// </summary>
@@ -144,27 +175,55 @@ namespace DbSeeder.WPF.Model
 
         private void Unique_Checked()
         {
-
+            NewField.IsUnique = !NewField.IsUnique;
         }
 
         private void Regex_Checked()
         {
-
-        }
-
-        private void Method_Set()
-        {
-
+            NewField.IsRegex = !NewField.IsRegex;
         }
 
         #endregion
 
         #region Commands
 
-        public ICommand SetMethodCommand { get; set; }
-        public ICommand RegexCheckedCommand { get; set; }
-        public ICommand UniqueCheckedCommand { get; set; }
+        public ICommand AddNewJsonFieldCommand { get; set; }
 
+        private void Add_Item()
+        {
+            if (NewField.ParentField.Equals("root", StringComparison.CurrentCultureIgnoreCase))
+            {
+                Items.Add(NewField);
+            }
+            else
+            {
+                // iterate through items of Items
+                foreach (JsonFieldViewModel item in Items)
+                {
+                    // if given item FieldName equals to assigned parentField -- add the new field nested under it
+                    if (item.FieldName.Equals(NewField.ParentField, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        item.Children.Add(NewField);
+                    }
+                    else continue;
+                }
+            }
+
+            // Store the new Key to be able to show it in Parent DropDown selector
+            Keys.Add(NewField.FieldName);
+
+            // Reset NewField
+            NewField = new JsonFieldViewModel();
+            // Trigger PropertyChanged of Items
+            PropertyChanged(this, new PropertyChangedEventArgs(nameof(Items)));
+        }
+        
+        public ICommand ToggleAddFieldZoneVisibility { get; set; }
+
+        private void Toggle_AddFieldVisibility()
+        {
+            AddFieldZoneVisibility = !AddFieldZoneVisibility;
+        }
         #endregion
 
         private void GenerateSampleData()
@@ -172,10 +231,11 @@ namespace DbSeeder.WPF.Model
             for (var i = 0; i < 18; i = i+3)
             {
                 // Simple Field
-                var jsonField = new JsonFieldViewModel(FieldTypes.Field, $"Key {i}");
+                NewField = new JsonFieldViewModel(FieldTypes.Field, $"Key {i}");
+                Add_Item();
 
                 // Map
-                var jsonField2 = new JsonFieldViewModel(FieldTypes.Map, $"Key {i+1}");
+                NewField = new JsonFieldViewModel(FieldTypes.Map, $"Key {i+1}");
                     // Map for map
                 var contentForJsonField2a = new JsonFieldViewModel(FieldTypes.Map, $"Field {i+1} - subMap");
                     // Regex Field for Map
@@ -190,19 +250,25 @@ namespace DbSeeder.WPF.Model
                     IsUnique = true
                 };
 
-                jsonField2.Children.Add(contentForJsonField2a);
-                jsonField2.Children.Add(contentForJsonField2b);
-                jsonField2.Children.Add(contentForJsonField2c);
-                
+                NewField.Children.Add(contentForJsonField2a);
+                NewField.Children.Add(contentForJsonField2b);
+                NewField.Children.Add(contentForJsonField2c);
+
+                Add_Item();
+
                 // Array
-                var jsonField3 = new JsonFieldViewModel(FieldTypes.Array, $"Key {i+2}");
+                NewField = new JsonFieldViewModel(FieldTypes.Array, $"Key {i+2}");
                     // Field for Array
                 var contentForJsonField3a = new JsonFieldViewModel(FieldTypes.Field, $"Field {i + 2} - subField");
                     // Array for array
                 var contentForJsonField3b = new JsonFieldViewModel(FieldTypes.Array, $"Field {i + 2} - subArray");
 
-                jsonField3.Children.Add(contentForJsonField3a);
-                jsonField3.Children.Add(contentForJsonField3b);
+                NewField.Children.Add(contentForJsonField3a);
+                NewField.Children.Add(contentForJsonField3b);
+
+                Add_Item();
+
+                NewField = new JsonFieldViewModel();
             }
 
         }
