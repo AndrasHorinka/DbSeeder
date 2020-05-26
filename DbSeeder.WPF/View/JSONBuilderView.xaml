@@ -13,6 +13,7 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="CollapsedIfFalseConverter" />
         <converters:VisibleIfFalseConverter x:Key="VisibleIfFalseConverter"/>
+        <converters:StringToHttpMethodConverter x:Key="StringToHttpMethodConverter"/>
     </Window.Resources>
     <Grid >
         <Grid.ColumnDefinitions>
@@ -65,6 +66,7 @@
 
         <ComboBox Grid.Row="2"
                   Grid.Column="1"
+                  SelectedItem="{Binding Path=Method}"
                   SelectedIndex="0"
                   HorizontalAlignment="Left"
                   VerticalAlignment="Center"

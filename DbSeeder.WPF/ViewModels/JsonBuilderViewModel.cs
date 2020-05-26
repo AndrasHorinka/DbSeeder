@@ -29,7 +29,7 @@ namespace DbSeeder.WPF.ViewModels
         /// </summary>
         public DateTime CurrentMoment => Now;
 
-        private string queryName = string.Empty;
+        private string queryName;
         /// <summary>
         /// Property to store the reference name of the query
         /// </summary>
