@@ -13,7 +13,6 @@ namespace DbSeeder.WPF.View
         public QueryView()
         {
             InitializeComponent();
-            DataContext = new QueryViewModel();
         }
 
         #endregion

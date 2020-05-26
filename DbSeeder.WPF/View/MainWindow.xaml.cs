@@ -1,4 +1,5 @@
-﻿using DbSeeder.WPF.View;
+﻿using DbSeeder.WPF.Controller;
+using DbSeeder.WPF.View;
 using System;
 using System.Diagnostics;
 using System.Windows;
@@ -12,37 +13,7 @@ namespace DbSeeder.WPF
     {
         public MainWindow()
         {
-            try
-            {
-                InitializeComponent();
-            }
-            catch (Exception e)
-            {
-            }
-
-        }
-
-        private void Hyperlink_Click(object sender, RoutedEventArgs e)
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "https://github.com/AndrasHorinka/DbSeeder",
-                UseShellExecute = true
-            };
-            Process.Start(psi);
-
-        }
-
-        private void NewQueryButton_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void BrowseQueriesButton_Click(object sender, RoutedEventArgs e)
-        {
-            var queryView = new QueryView();
-            queryView.Show();
-
+            InitializeComponent();
         }
     }
 }

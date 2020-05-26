@@ -1,0 +1,300 @@
+﻿<Window x:Class="DbSeeder.WPF.View.JSONBuilderView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:converters="clr-namespace:DbSeeder.WPF.Converters"
+        mc:Ignorable="d"
+        Title="JSONBuilderView"
+        Topmost="True"
+        Height="450" 
+        Width="800">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="CollapsedIfFalseConverter" />
+        <converters:VisibleIfFalseConverter x:Key="VisibleIfFalseConverter"/>
+    </Window.Resources>
+    <Grid >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Query header -->
+        <TextBlock
+            Grid.Row="1"
+            Grid.Column="0"
+            Text="Name"/>
+
+        <TextBox
+            Grid.Row="1"
+            Grid.Column="2"
+            Grid.ColumnSpan="7"
+            Text="{Binding Path=QueryName}"/>
+
+        <TextBlock
+            Grid.Row="1"
+            Grid.Column="10"
+            Grid.ColumnSpan="2"
+            HorizontalAlignment="Right"
+            Text="{Binding Path=CurrentMoment}"/>
+
+        <!-- Input fields : Line 1 -->
+        <TextBlock 
+            Grid.Row="2"
+            Grid.Column="0"
+            Text="URI" />
+
+        <ComboBox Grid.Row="2"
+                  Grid.Column="1"
+                  SelectedIndex="0"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Center"
+                  FontWeight="Bold"
+                  FontSize="12"
+                  FontFamily="Verdana">
+            <ComboBoxItem>POST</ComboBoxItem>
+            <ComboBoxItem>PATCH</ComboBoxItem>
+            <ComboBoxItem>PUT</ComboBoxItem>
+            <ComboBoxItem>DELETE</ComboBoxItem>
+        </ComboBox>
+
+        <TextBox Grid.Row="2"
+                 Grid.Column="2"
+                 Grid.ColumnSpan="7"
+                 Padding="10, 0"
+                 VerticalAlignment="Center"
+                 HorizontalAlignment="Stretch"
+                 Name="Uri"
+                 ToolTip="The URI to be triggered"
+                 Text="{Binding DefaultUri}"/>
+
+        <TextBlock Grid.Row="2"
+                   Grid.Column="2"
+                   Grid.ColumnSpan="7"
+                   IsHitTestVisible="False" 
+                   Text="Example: https://localhost:5001/{uriParam1}/{uriParam2}" 
+                   VerticalAlignment="Center" 
+                   HorizontalAlignment="Left" 
+                   Padding="11, 0"
+                   Foreground="DarkGray">
+            <TextBlock.Style>
+                <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Text, ElementName=Uri}" Value="">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <TreeView ItemsSource="{Binding Path=JsonField}"                  
+                  Grid.Row="3"
+                  Grid.Column="1"
+                  Grid.ColumnSpan="11">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="Visibility" Value="{Binding IsVisible, Mode=TwoWay, FallbackValue=Collapsed, Converter={StaticResource CollapsedIfFalseConverter}}"/>
+                </Style>
+            </TreeView.ItemContainerStyle>
+
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Path=Children}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" MaxHeight="25"/>
+                            <RowDefinition Height="Auto" MaxHeight="75"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- The Key and Type of fields-->
+                        <StackPanel Grid.Column="0" Grid.Row="0">
+                            <TextBlock Text="{Binding Path=KeyName}"/>
+                            <TextBlock Text="{Binding Path=KeyType}"/>
+                        </StackPanel>
+
+                        <!-- Grid splitter --> 
+                        <GridSplitter Grid.Column="1" 
+                                      Grid.Row="0"  
+                                      Width="5" 
+                                      HorizontalAlignment="Stretch"/>
+
+                        <!-- The control buttons -->
+                        <WrapPanel Grid.Column="2" 
+                                   Grid.Row="0" 
+                                   IsHitTestVisible="False">
+                            <WrapPanel.Style>
+                                <Style TargetType="{x:Type WrapPanel}">
+                                    <Setter Property="Grid.RowSpan" Value="1"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Visibility, ElementName=ShowAddChildrenZoneButton}" Value="Collapsed">
+                                            <Setter Property="Grid.RowSpan" Value="2"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </WrapPanel.Style>
+                            <Button Command="{Binding Path=ShowAddChildrenZone}"
+                                    Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource VisibleIfFalseConverter}}"
+                                    Content="Add field"
+                                    Name="ShowAddChildrenZoneButton"/>
+                            <Button Command="{Binding Path=DeleteField}" 
+                                    Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource VisibleIfFalseConverter}}"
+                                    Content="Delete field"/>
+                            <Button Command="{Binding Path=AddChildField}"
+                                    Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource CollapsedIfFalseConverter}}"
+                                    Content="Add field"/>
+                            <Button Command="{Binding Path=DiscardChildField}"
+                                    Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource CollapsedIfFalseConverter}}"
+                                    Content="Discard field"/>
+                        </WrapPanel>
+                        
+                        <!-- The add field part -->
+                        <StackPanel Visibility="{Binding Path=AddChildrenZoneIsVisible, 
+                            Converter={StaticResource CollapsedIfFalseConverter}}" 
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="2">
+                            <TextBox Text="{Binding Path=ChildFieldName}"
+                                     TextAlignment ="Left"
+                                     MaxWidth="300"
+                                     Height="25"
+                                     ToolTip="Name of the Key to be added to the JSON"/>
+                            <!-- Radio buttons for type selectors -->
+                            <WrapPanel Orientation="Horizontal" MaxHeight="25">
+                                <WrapPanel.Resources>
+                                    <Style TargetType="{x:Type RadioButton}"
+                                           x:Key="BaseRadioButton">
+                                        <Setter Property="IsChecked" Value="False"/>
+                                        <Setter Property="Margin" Value="10 5"/>
+                                        <Setter Property="FontSize" Value="14"/>
+                                        <Setter Property="FontFamily" Value="Verdana"/>
+                                        <Setter Property="BorderThickness" Value="2"/>
+                                        <Setter Property="Grid.ColumnSpan" Value="2"/>
+                                    </Style>
+                                    <Style TargetType="{x:Type RadioButton}"
+                                           x:Key="InvisibleRadioButton">
+                                        <Setter Property="IsChecked" Value="False"/>
+                                        <Setter Property="Margin" Value="10 5"/>
+                                        <Setter Property="FontSize" Value="14"/>
+                                        <Setter Property="FontFamily" Value="Verdana"/>
+                                        <Setter Property="Grid.ColumnSpan" Value="2"/>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=FieldTypeSelected, Path=IsChecked}"
+                                                         Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </WrapPanel.Resources>
+                                <TextBlock Text="Type"
+                                           FontWeight="Bold"/>
+                                <!-- Keytype selector -->
+                                <RadioButton GroupName="KeySelectors"
+                                             x:Name="FieldTypeSelected"
+                                             Style="{StaticResource BaseRadioButton}"
+                                             Content="Field"/>
+                                <RadioButton GroupName="KeySelectors"
+                                             Style="{StaticResource BaseRadioButton}"
+                                             Content="Map"/>
+                                <RadioButton GroupName="KeySelectors"
+                                             Style="{StaticResource BaseRadioButton}"
+                                             Content="Array"/>
+
+                                <!-- Type Selectors if key is a field -->
+                                <RadioButton GroupName="FieldTypeSelectors"
+                                             Content="String"
+                                             Style="{StaticResource |InvisibleRadioButton}">
+                                </RadioButton>
+                                <RadioButton GroupName="FieldTypeSelectors"
+                                             Content="Boolean"
+                                             Style="{StaticResource InvisibleRadioButton}">
+                                </RadioButton>
+                                <RadioButton GroupName="FieldTypeSelectors"
+                                             Content="Integer"
+                                             Style="{StaticResource InvisibleRadioButton}">
+                                </RadioButton>
+                                <RadioButton GroupName="FieldTypeSelectors"
+                                             Content="Float"
+                                             Style="{StaticResource InvisibleRadioButton}">
+                                </RadioButton>
+                            </WrapPanel>
+                            <!-- Checkboxes for Unique and Regex -->
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel.Resources>
+                                    <Style TargetType="{x:Type CheckBox}">
+                                        <Setter Property="IsChecked" Value="False"/>
+                                        <Setter Property="Margin" Value="10 5"/>
+                                        <Setter Property="FontSize" Value="14"/>
+                                        <Setter Property="FontFamily" Value="Verdana"/>
+                                        <Setter Property="BorderThickness" Value="2"/>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=FieldTypeSelected, Path=IsChecked}"
+                                                         Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Resources>
+                                <CheckBox IsChecked="{Binding Path=ChildIsUnique}" 
+                                          Content="Unique"/>
+                                <CheckBox x:Name="RegexCheckBox"
+                                          Content="Regex"/>
+                                <!-- Regex Expression -->
+                                <TextBox Text="{Binding Path=ChildRegex}" 
+                                         Name="RegexExpression"
+                                         ToolTip="The regular expression to be used for value generation">
+                                    <TextBox.Style>
+                                        <Style TargetType="{x:Type TextBox}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Setter Property="Background" Value="Khaki"/>
+                                            <Setter Property="Foreground" Value="DarkSlateGray"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=RegexCheckBox, Path=IsChecked}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding ElementName=RegexExpression, Path=Text}" Value="">
+                                                    <Setter Property="Text" Value="Please enter regular expression here"/>
+                                                    <Setter Property="Foreground" Value="DarkGray"/>
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBox.Style>
+                                </TextBox>
+                            </StackPanel>
+                        </StackPanel>
+
+                    </Grid>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+
+        </TreeView>
+
+    </Grid>
+</Window>

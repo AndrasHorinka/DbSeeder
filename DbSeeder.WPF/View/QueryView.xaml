@@ -134,7 +134,7 @@
                         BorderThickness="3"
                         Background="Khaki"
                         BorderBrush="DarkKhaki"
-                        Command="{Binding ToggleAddFieldZoneVisibility}"/>
+                        Command="{Binding ShowAddJsonField}"/>
                 <Button Margin="5"
                         Content="Add Value"
                         FontFamily="Verdana"
@@ -155,7 +155,8 @@
                       ItemsSource="{Binding Items}">
                 <TreeView.ItemContainerStyle>
                     <Style TargetType="{x:Type TreeViewItem}">
-                        <Setter Property="IsExpanded" Value="True"/>
+                        <Setter Property="IsExpanded"  Value="{Binding IsExpanded}"/>
+                        <Setter Property="Visibility" Value="Visible"/>
                     </Style>
                 </TreeView.ItemContainerStyle>
                 
@@ -172,7 +173,7 @@
                 
                 
                 
-                <TreeView.Resources>
+                <!--<TreeView.Resources>
                     <Style TargetType="{x:Type TreeViewItem}">
                         <Setter Property="HeaderTemplate">
                             <Setter.Value>
@@ -190,7 +191,7 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
-                                        <!-- Keys -->
+                                        --><!-- Keys --><!--
                                         <Label Grid.Column="0"
                                                HorizontalAlignment="Stretch" 
                                                Content="Key Binding?"
@@ -208,7 +209,7 @@
                             </Setter.Value>
                         </Setter>
                     </Style>
-                </TreeView.Resources>
+                </TreeView.Resources>-->
             </TreeView>
         </StackPanel>
         
@@ -279,7 +280,7 @@
                 <ComboBox Grid.Row="0"
                           Grid.Column="1"
                           ItemsSource="{Binding Keys}"
-                          SelectedIndex="0"
+                          SelectedItem="{Binding NewField.ParentField}"
                           Margin="5 0 0 3"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Center"
@@ -294,7 +295,8 @@
 
                 <TextBox Grid.Row="1"
                          Grid.Column="1"
-                         x:Name="KeyName"/>
+                         x:Name="KeyName"
+                         Text="{Binding NewField.FieldName}"/>
 
                 <!-- KeySelectors-->
                 <StackPanel Grid.Row="2"
@@ -302,6 +304,7 @@
                             Orientation="Horizontal">
                     <RadioButton GroupName="KeySelectors"
                                  x:Name="FieldTypeSelected"
+                                 IsChecked="True"
                                  Style="{StaticResource baseRadioButton}"
                                  Content="Field"/>
                     <RadioButton GroupName="KeySelectors"
@@ -340,7 +343,6 @@
                             Orientation="Horizontal">
                     <CheckBox x:Name="UniqueCheckBox"
                               Content="Unique"/>
-                    <!--Checked="UniqueCheckBox_Checked"/>-->
                     <CheckBox x:Name="RegexCheckBox"
                               Content="Regex"/>
                 </StackPanel>
@@ -395,7 +397,7 @@
                             FontWeight="Bold"
                             BorderThickness="3"
                             Background="Khaki"
-                            Command="{Binding Path=AddNewJsonFieldCommand}"
+                            Command="{Binding AddNewJsonField}"
                             BorderBrush="DarkKhaki"/>
                     <!--Click="{Binding AddNewJsonFieldCommand}"/>-->
                     <Button Margin="20 0"
@@ -406,6 +408,7 @@
                             BorderThickness="3"
                             Background="Khaki"
                             BorderBrush="DarkKhaki"
+                            Command="{Binding ResetAddFieldZone}"
                         />
                 </StackPanel>
                             
@@ -438,5 +441,22 @@
         </StackPanel>
 
 
+        <StackPanel>
+            <TreeView ItemsSource="{Binding Items}">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="True"/>
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding FieldName}" Margin="10"/>
+                            <TextBlock Text="{Binding FieldValue}" Margin="10"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </StackPanel>
     </DockPanel>
 </Window>

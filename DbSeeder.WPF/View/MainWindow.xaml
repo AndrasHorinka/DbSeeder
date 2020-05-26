@@ -48,12 +48,10 @@
                     <Button x:Name="NewQueryButton" 
                             Grid.Column="0" 
                             Grid.Row="0" 
-                            Content="New Query"
-                            Click="NewQueryButton_Click"/>
+                            Content="New Query"/>
                     <Button x:Name="BrowseQueriesButton" 
                             Grid.Column="0" 
                             Grid.Row="1" 
-                            Click="BrowseQueriesButton_Click"
                             Content="Browse Queries" />
 
                     <Button x:Name="ExitButton" 
@@ -76,8 +74,7 @@
                         <LineBreak/> 
                         <LineBreak/> 
                         Please do make sure to raise new issue at the project page on
-                        <Hyperlink NavigateUri="https://github.com/AndrasHorinka/DbSeeder"
-                                   Click="Hyperlink_Click">GitHub
+                        <Hyperlink NavigateUri="https://github.com/AndrasHorinka/DbSeeder">GitHub
                         </Hyperlink>
                         for any found bugs or suggestions.
                     </TextBlock>
