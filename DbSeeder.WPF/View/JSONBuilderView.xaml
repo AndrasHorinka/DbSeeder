@@ -13,7 +13,6 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="CollapsedIfFalseConverter" />
         <converters:VisibleIfFalseConverter x:Key="VisibleIfFalseConverter"/>
-        <converters:StringToHttpMethodConverter x:Key="StringToHttpMethodConverter"/>
     </Window.Resources>
     <Grid >
         <Grid.ColumnDefinitions>
@@ -44,19 +43,15 @@
             Grid.Row="1"
             Grid.Column="0"
             Text="Name"/>
+        <Button Content="TestButton"
+                Command="{Binding TestCommand}"/>
 
         <TextBox
             Grid.Row="1"
             Grid.Column="2"
             Grid.ColumnSpan="7"
+            ToolTip="A name you can use for internal reference for the given query"
             Text="{Binding Path=QueryName}"/>
-
-        <TextBlock
-            Grid.Row="1"
-            Grid.Column="10"
-            Grid.ColumnSpan="2"
-            HorizontalAlignment="Right"
-            Text="{Binding Path=CurrentMoment}"/>
 
         <!-- Input fields : Line 1 -->
         <TextBlock 
@@ -65,18 +60,14 @@
             Text="URI" />
 
         <ComboBox Grid.Row="2"
-                  Grid.Column="1"
-                  SelectedItem="{Binding Path=Method}"
-                  SelectedIndex="0"
-                  HorizontalAlignment="Left"
-                  VerticalAlignment="Center"
-                  FontWeight="Bold"
-                  FontSize="12"
-                  FontFamily="Verdana">
-            <ComboBoxItem>POST</ComboBoxItem>
-            <ComboBoxItem>PATCH</ComboBoxItem>
-            <ComboBoxItem>PUT</ComboBoxItem>
-            <ComboBoxItem>DELETE</ComboBoxItem>
+              Grid.Column="1"
+              ItemsSource="{Binding Path=AvailableHttpMethods}"
+              SelectedItem="{Binding Path=Method}"
+              HorizontalAlignment="Left"
+              VerticalAlignment="Center"
+              FontWeight="Bold"
+              FontSize="12"
+              FontFamily="Verdana">
         </ComboBox>
 
         <TextBox Grid.Row="2"
@@ -110,9 +101,12 @@
             </TextBlock.Style>
         </TextBlock>
 
-        <TreeView ItemsSource="{Binding Path=JsonField}"                  
+        <!-- List of Fields -->
+        <TreeView ItemsSource="{Binding Path=JsonFieldViewModels}"                  
                   Grid.Row="3"
-                  Grid.Column="1"
+                  Grid.Column="0"
+                  Padding="5 3"
+                  BorderThickness="2"
                   Grid.ColumnSpan="11">
             <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}">
@@ -129,12 +123,22 @@
                             <ColumnDefinition Width="200"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" MaxHeight="25"/>
-                            <RowDefinition Height="Auto" MaxHeight="75"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         
                         <!-- The Key and Type of fields-->
-                        <StackPanel Grid.Column="0" Grid.Row="0">
+                        <StackPanel Grid.Column="0" 
+                                    Grid.Row="0"
+                                    Orientation="Horizontal">
+                            <StackPanel.Resources>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Margin" Value="2"/>
+                                    <Setter Property="Padding" Value="3"/>
+                                    <Setter Property="FontWeight" Value="DemiBold"/>
+                                </Style>
+                            </StackPanel.Resources>
                             <TextBlock Text="{Binding Path=KeyName}"/>
                             <TextBlock Text="{Binding Path=KeyType}"/>
                         </StackPanel>
@@ -142,54 +146,57 @@
                         <!-- Grid splitter --> 
                         <GridSplitter Grid.Column="1" 
                                       Grid.Row="0"  
-                                      Width="5" 
+                                      Width="5"
                                       HorizontalAlignment="Stretch"/>
 
-                        <!-- The control buttons -->
-                        <WrapPanel Grid.Column="2" 
-                                   Grid.Row="0" 
-                                   IsHitTestVisible="False">
-                            <WrapPanel.Style>
-                                <Style TargetType="{x:Type WrapPanel}">
-                                    <Setter Property="Grid.RowSpan" Value="1"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Visibility, ElementName=ShowAddChildrenZoneButton}" Value="Collapsed">
-                                            <Setter Property="Grid.RowSpan" Value="2"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
+                        <!-- The control for buttons -->
+                        <StackPanel Grid.Column="2"
+                                    Grid.Row="0"
+                                    Orientation="Horizontal">
+                            <StackPanel.Resources>
+                                <Style TargetType="{x:Type Button}">
+                                    <Setter Property="Margin" Value="3 0"/>
+                                    <Setter Property="Padding" Value="3 2"/>
+                                    <Setter Property="IsHitTestVisible" Value="True"/>
                                 </Style>
-                            </WrapPanel.Style>
+                            </StackPanel.Resources>
+
+                            <!-- Buttons to Add Child / Delete Key -->
                             <Button Command="{Binding Path=ShowAddChildrenZone}"
                                     Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource VisibleIfFalseConverter}}"
-                                    Content="Add field"
+                                    Content="{Binding Path=KeyName}"
                                     Name="ShowAddChildrenZoneButton"/>
                             <Button Command="{Binding Path=DeleteField}" 
                                     Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource VisibleIfFalseConverter}}"
                                     Content="Delete field"/>
+
+                            <!-- Buttons to Save new child / Discard new Child -->
                             <Button Command="{Binding Path=AddChildField}"
                                     Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource CollapsedIfFalseConverter}}"
                                     Content="Add field"/>
                             <Button Command="{Binding Path=DiscardChildField}"
                                     Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource CollapsedIfFalseConverter}}"
                                     Content="Discard field"/>
-                        </WrapPanel>
+                        </StackPanel>
                         
                         <!-- The add field part -->
                         <StackPanel Visibility="{Binding Path=AddChildrenZoneIsVisible, 
                             Converter={StaticResource CollapsedIfFalseConverter}}" 
                                     Grid.Row="1"
                                     Grid.Column="0"
-                                    Grid.ColumnSpan="2">
+                                    Grid.ColumnSpan="2"
+                                    Grid.RowSpan="2">
+                           
                             <TextBox Text="{Binding Path=ChildFieldName}"
                                      TextAlignment ="Left"
                                      MaxWidth="300"
                                      Height="25"
                                      ToolTip="Name of the Key to be added to the JSON"/>
+
                             <!-- Radio buttons for type selectors -->
-                            <WrapPanel Orientation="Horizontal" MaxHeight="25">
-                                <WrapPanel.Resources>
-                                    <Style TargetType="{x:Type RadioButton}"
-                                           x:Key="BaseRadioButton">
+                            <StackPanel Orientation="Horizontal" MaxHeight="25">
+                                <StackPanel.Resources>
+                                    <Style TargetType="{x:Type RadioButton}">
                                         <Setter Property="IsChecked" Value="False"/>
                                         <Setter Property="Margin" Value="10 5"/>
                                         <Setter Property="FontSize" Value="14"/>
@@ -197,13 +204,24 @@
                                         <Setter Property="BorderThickness" Value="2"/>
                                         <Setter Property="Grid.ColumnSpan" Value="2"/>
                                     </Style>
-                                    <Style TargetType="{x:Type RadioButton}"
-                                           x:Key="InvisibleRadioButton">
-                                        <Setter Property="IsChecked" Value="False"/>
-                                        <Setter Property="Margin" Value="10 5"/>
-                                        <Setter Property="FontSize" Value="14"/>
-                                        <Setter Property="FontFamily" Value="Verdana"/>
-                                        <Setter Property="Grid.ColumnSpan" Value="2"/>
+                                </StackPanel.Resources>
+                                <TextBlock Text="Type"
+                                           FontWeight="Bold"/>
+
+                                <!-- KeyType selector -->
+                                <RadioButton GroupName="KeySelectors"
+                                             x:Name="FieldTypeSelected"
+                                             Content="Field"/>
+                                <RadioButton GroupName="KeySelectors"
+                                             Content="Map"/>
+                                <RadioButton GroupName="KeySelectors"
+                                             Content="Array"/>
+                            </StackPanel>
+
+                            <!-- Field Type selectors -->
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel.Style>
+                                    <Style TargetType="{x:Type StackPanel}">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding ElementName=FieldTypeSelected, Path=IsChecked}"
@@ -212,39 +230,28 @@
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </WrapPanel.Resources>
-                                <TextBlock Text="Type"
-                                           FontWeight="Bold"/>
-                                <!-- Keytype selector -->
-                                <RadioButton GroupName="KeySelectors"
-                                             x:Name="FieldTypeSelected"
-                                             Style="{StaticResource BaseRadioButton}"
-                                             Content="Field"/>
-                                <RadioButton GroupName="KeySelectors"
-                                             Style="{StaticResource BaseRadioButton}"
-                                             Content="Map"/>
-                                <RadioButton GroupName="KeySelectors"
-                                             Style="{StaticResource BaseRadioButton}"
-                                             Content="Array"/>
-
+                                </StackPanel.Style>
+                                <StackPanel.Resources>
+                                    <Style TargetType="{x:Type RadioButton}">
+                                        <Setter Property="IsChecked" Value="False"/>
+                                        <Setter Property="Margin" Value="10 5"/>
+                                        <Setter Property="FontSize" Value="14"/>
+                                        <Setter Property="FontFamily" Value="Verdana"/>
+                                        <Setter Property="BorderThickness" Value="2"/>
+                                        <Setter Property="Grid.ColumnSpan" Value="2"/>
+                                    </Style>
+                                </StackPanel.Resources>
                                 <!-- Type Selectors if key is a field -->
                                 <RadioButton GroupName="FieldTypeSelectors"
-                                             Content="String"
-                                             Style="{StaticResource |InvisibleRadioButton}">
-                                </RadioButton>
+                                             Content="String"/>
                                 <RadioButton GroupName="FieldTypeSelectors"
-                                             Content="Boolean"
-                                             Style="{StaticResource InvisibleRadioButton}">
-                                </RadioButton>
+                                             Content="Boolean"/>
                                 <RadioButton GroupName="FieldTypeSelectors"
-                                             Content="Integer"
-                                             Style="{StaticResource InvisibleRadioButton}">
-                                </RadioButton>
+                                             Content="Integer"/>
                                 <RadioButton GroupName="FieldTypeSelectors"
-                                             Content="Float"
-                                             Style="{StaticResource InvisibleRadioButton}">
-                                </RadioButton>
-                            </WrapPanel>
+                                             Content="Float"/>
+                            </StackPanel>
+
                             <!-- Checkboxes for Unique and Regex -->
                             <StackPanel Orientation="Horizontal">
                                 <StackPanel.Resources>

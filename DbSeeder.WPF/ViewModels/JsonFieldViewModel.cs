@@ -1,5 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DbSeeder.WPF.Services;
@@ -15,7 +17,7 @@ namespace DbSeeder.WPF.ViewModels
 
         #region Constructor
 
-        public JsonFieldViewModel()
+        public JsonFieldViewModel(JsonFieldViewModel owner = null)
         {
             #region Initialize Commands
 
@@ -28,6 +30,8 @@ namespace DbSeeder.WPF.ViewModels
 
             #region Initialize Nullable Types
 
+            Owner = owner;
+
             Children = new ObservableCollection<JsonFieldViewModel>()
             {
                 null
@@ -38,7 +42,8 @@ namespace DbSeeder.WPF.ViewModels
             #region Initialize nonNullable Types
 
             ChildCounter = 0;
-            AddChildrenZoneIsVisible = true; // Change it to false
+            AddChildrenZoneIsVisible = false; // Change it to false
+            isVisible = true;
 
             #endregion
 
@@ -106,7 +111,7 @@ namespace DbSeeder.WPF.ViewModels
 
         private string regex;
         /// <summary>
-        /// Property to store regular expression of given field
+        /// Property to store regular expression of given field - if KeyType is field.
         /// </summary>
         public string Regex
         {
@@ -160,7 +165,34 @@ namespace DbSeeder.WPF.ViewModels
                 PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(IsUnique)));
             }
         }
-        
+
+        private bool isVisible;
+        /// <summary>
+        /// Property to store if the given field should be visible or not
+        /// </summary>
+        public bool IsVisible
+        {
+            get => isVisible;
+            set
+            {
+                if (isVisible == value) return;
+
+                isVisible = value;
+                PropertyChanged(this, new PropertyChangedEventArgs(nameof(IsVisible)));
+            }
+        }
+
+        /// <summary>
+        /// Property to store if the item can be expanded, which is true if it has any children
+        /// </summary>
+        public bool CanExpand
+        {
+            get
+            {
+                return Children?.Count(f => f != null) > 0;
+            }
+        }
+
         #endregion
 
         #region Backend methods
@@ -197,7 +229,7 @@ namespace DbSeeder.WPF.ViewModels
         /// <summary>
         /// Command that shows AddChildrenZone
         /// </summary>
-        public ICommand ShowAddChildrenZone;
+        public ICommand ShowAddChildrenZone { get; set; }
         private void showAddChildrenZone()
         {
             AddChildrenZoneIsVisible = true;
@@ -206,7 +238,7 @@ namespace DbSeeder.WPF.ViewModels
         /// <summary>
         /// Command that hides AddChildrenZone
         /// </summary>
-        public ICommand DiscardAddChildrenZone;
+        public ICommand DiscardAddChildrenZone { get; set; }
         private void discardAddChildrenZone()
         {
             AddChildrenZoneIsVisible = false;
@@ -218,7 +250,7 @@ namespace DbSeeder.WPF.ViewModels
         /// <summary>
         /// Command that add a new field as child to the selected element
         /// </summary>
-        public ICommand AddChildField;
+        public ICommand AddChildField { get; set; }
         private void addChilField()
         {
             // should take an argument which is the owner field
@@ -232,7 +264,7 @@ namespace DbSeeder.WPF.ViewModels
         /// <summary>
         /// Command that removes certain field and all of its children
         /// </summary>
-        public ICommand DeleteField;
+        public ICommand DeleteField { get; set; }
         private void deleteField()
         {
             // should take an argument which field it is to be deleted
@@ -256,6 +288,53 @@ namespace DbSeeder.WPF.ViewModels
         public bool ChildIsUnique { get; set; } = false;
 
 
+
+        #endregion
+
+        #region Sample Generation
+
+        internal async void GenerateSample(int index, int depth)
+        {
+            string[] keyTypes = { "Field", "Map", "Array" };
+            string[] fieldTypes = { "string", "bool", "float", "int" };
+            bool[] bools = { true, false };
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var stringChars = new char[8];
+
+            Random rnd = new Random();
+
+            for (int i = 0; i < index; i++)
+            {
+                keyType = depth <= 4 ? keyTypes[rnd.Next(3)] : "Field";
+
+                JsonFieldViewModel field = new JsonFieldViewModel(this)
+                {
+                    KeyName = $"key lvl {index} - {index*10+i}",
+                    KeyType = keyType
+                };
+
+                Children.Add(field);
+
+                if (!(string.Equals(field.KeyType, "Field", StringComparison.OrdinalIgnoreCase)))
+                {
+                    if (depth <= 4)
+                    {
+                        field.GenerateSample(i, ++depth);
+                    }
+                    continue;
+                }
+
+                field.FieldType = fieldTypes[rnd.Next(4)];
+                field.IsUnique = bools[rnd.Next(2)];
+
+                for (int s = 0; s < stringChars.Length; s++)
+                {
+                    stringChars[s] = chars[rnd.Next(chars.Length)];
+                }
+
+                field.Regex = new string(stringChars);
+            }
+        }
 
         #endregion
     }

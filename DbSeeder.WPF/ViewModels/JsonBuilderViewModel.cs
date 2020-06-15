@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Data;
-
+using System.Windows.Input;
+using DbSeeder.WPF.Services;
 using static System.DateTime;
 
 namespace DbSeeder.WPF.ViewModels
@@ -23,11 +28,6 @@ namespace DbSeeder.WPF.ViewModels
         #endregion
 
         #region Fields and Properties
-
-        /// <summary>
-        /// Snapshot of time when window was opened
-        /// </summary>
-        public DateTime CurrentMoment => Now;
 
         private string queryName;
         /// <summary>
@@ -73,11 +73,23 @@ namespace DbSeeder.WPF.ViewModels
             set
             {
                 if (method == value) return;
-
+                
                 method = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Method)));
             }
         }
+
+        /// <summary>
+        /// Helper Property to seed ComboBox
+        /// </summary>
+        public IEnumerable<HttpMethod> AvailableHttpMethods =>
+            new List<HttpMethod>
+            {
+                HttpMethod.Post,
+                HttpMethod.Patch,
+                HttpMethod.Put,
+                HttpMethod.Delete
+            };
 
         private ObservableCollection<JsonFieldViewModel> jsonFieldViewModels;
         /// <summary>
@@ -93,7 +105,7 @@ namespace DbSeeder.WPF.ViewModels
                 if (value == jsonFieldViewModels) return;
 
                 jsonFieldViewModels = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JsonFieldViewModels)));
+                PropertyChanged(this, new PropertyChangedEventArgs(nameof(JsonFieldViewModels)));
             }
         }
 
@@ -109,10 +121,28 @@ namespace DbSeeder.WPF.ViewModels
 
         public JsonBuilderViewModel()
         {
+            #region Initialize Commands
+
+            TestCommand = new RelayCommand(testCommand);
+
+            #endregion
+
             #region Initialize NullableTypes
 
-            JsonFieldViewModels = new ObservableCollection<JsonFieldViewModel>();
+            jsonFieldViewModels = new ObservableCollection<JsonFieldViewModel>();
             ResetJsonField();
+
+            #endregion
+
+            #region Initialize nonNullable Types
+
+            method = HttpMethod.Post;
+
+            #endregion
+
+            #region Initialise Samples
+
+            GenerateSample();
 
             #endregion
         }
@@ -128,7 +158,68 @@ namespace DbSeeder.WPF.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JsonField)));
         }
 
+        public ICommand TestCommand;
+
+        private void testCommand()
+        {
+            TestBol = !TestBol;
+        }
+
+        private bool testBol = true;
+
+        public bool TestBol
+        {
+            get => testBol;
+            set => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TestBol)));
+        }
+
         #endregion
+
+        #region Sample Generation
+
+        private void GenerateSample()
+        {
+            string[] keyTypes = {"Field", "Map", "Array"};
+            string[] fieldTypes = {"string", "bool", "float", "int"};
+            bool[] bools = {true, false};
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var stringChars = new char[8];
+
+            Random rnd = new Random();
+
+            for (int i = 1; i < 10; i++)
+            {
+                JsonFieldViewModel field = new JsonFieldViewModel(null)
+                {
+                    KeyName = $"key lvl 1 {i}",
+                    KeyType = keyTypes[rnd.Next(3)]
+                };
+
+                JsonFieldViewModels.Add(field);
+
+                if (!(string.Equals(field.KeyType, "Field", StringComparison.OrdinalIgnoreCase)))
+                {
+                    field.GenerateSample(i, 0);
+                    continue;
+                }
+
+                field.FieldType = fieldTypes[rnd.Next(4)];
+                field.IsUnique = bools[rnd.Next(2)];
+
+                for (int s = 0; s < stringChars.Length; s++)
+                {
+                    stringChars[s] = chars[rnd.Next(chars.Length)];
+                }
+
+                field.Regex = new string(stringChars);
+            }
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JsonFieldViewModels)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JsonField)));
+        }
+
+        #endregion
+
     }
 
 }

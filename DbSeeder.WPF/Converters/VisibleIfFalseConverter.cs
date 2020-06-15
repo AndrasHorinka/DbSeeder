@@ -42,7 +42,7 @@ namespace DbSeeder.WPF.Converters
         {
             if (value is Visibility)
             {
-                return (Visibility)value == Visibility.Collapsed;
+                return (Visibility)value != Visibility.Visible;
             }
             else
             {
