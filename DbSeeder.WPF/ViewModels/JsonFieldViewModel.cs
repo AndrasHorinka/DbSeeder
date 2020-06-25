@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Media;
 using DbSeeder.WPF.Services;
 
 namespace DbSeeder.WPF.ViewModels
@@ -44,6 +45,7 @@ namespace DbSeeder.WPF.ViewModels
             ChildCounter = 0;
             AddChildrenZoneIsVisible = false; // Change it to false
             isVisible = true;
+            editedFieldZoneBackground = new SolidColorBrush(Colors.White);
 
             #endregion
 
@@ -210,6 +212,23 @@ namespace DbSeeder.WPF.ViewModels
 
         #region AddChildrenUIControl
 
+        private SolidColorBrush editedFieldZoneBackground;
+        /// <summary>
+        /// Property to flag if given JSON field is being edited
+        /// </summary>
+        public SolidColorBrush EditedFieldZoneBackground
+        {
+            get => editedFieldZoneBackground;
+            set
+            {
+                if (value == editedFieldZoneBackground) return;
+
+                editedFieldZoneBackground = value;
+                PropertyChanged(this, new PropertyChangedEventArgs(nameof(EditedFieldZoneBackground)));
+
+            }
+        }
+
         private bool addChildrenZoneIsVisible;
         /// <summary>
         /// Property to flag if AddChildrenZone should be visible or not
@@ -222,8 +241,27 @@ namespace DbSeeder.WPF.ViewModels
                 if (value == addChildrenZoneIsVisible) return;
 
                 addChildrenZoneIsVisible = value;
+                if (value)
+                {
+                    MarkFieldEdited();
+                }
+                else
+                {
+                    UnMarkFieldEdited();
+                }
+
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AddChildrenZoneIsVisible)));
             }
+        }
+
+        private void MarkFieldEdited()
+        {
+            EditedFieldZoneBackground = new SolidColorBrush(Colors.Aqua);
+        }
+
+        private void UnMarkFieldEdited()
+        {
+            EditedFieldZoneBackground = new SolidColorBrush(Colors.White);
         }
 
         /// <summary>

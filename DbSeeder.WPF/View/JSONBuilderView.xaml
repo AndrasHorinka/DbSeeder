@@ -13,11 +13,13 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="CollapsedIfFalseConverter" />
         <converters:VisibleIfFalseConverter x:Key="VisibleIfFalseConverter"/>
+
     </Window.Resources>
     <Grid >
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"
+                              MinWidth="80" MaxWidth="120"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
@@ -38,14 +40,41 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Query header -->
+        <Grid.Resources>
+            <Style TargetType="{x:Type TextBlock}">
+                <Setter Property="Margin" Value="3 1"/>
+                <Setter Property="Padding" Value="3 1 3 5"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontFamily" Value="Verdana"/>
+                <Setter Property="Height" Value="25"/>
+            </Style>
+            <Style TargetType="{x:Type TextBox}">
+                <Setter Property="Margin" Value="3 1 3 5"/>
+                <Setter Property="Padding" Value="3 1"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontFamily" Value="Verdana"/>
+                <Setter Property="Height" Value="25"/>
+            </Style>
+            <Style TargetType="{x:Type ComboBox}">
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontSize" Value="10"/>
+                <Setter Property="FontFamily" Value="Verdana"/>
+                <Setter Property="Margin" Value="3 1 3 5"/>
+            </Style>
+        </Grid.Resources>
+
+        <!-- Query Name -->
         <TextBlock
             Grid.Row="1"
             Grid.Column="0"
+            FontWeight="Bold"
             Text="Name"/>
-        <Button Content="TestButton"
-                Command="{Binding TestCommand}"/>
 
+        <!-- Query Name -->
         <TextBox
             Grid.Row="1"
             Grid.Column="2"
@@ -57,17 +86,15 @@
         <TextBlock 
             Grid.Row="2"
             Grid.Column="0"
+            FontWeight="Bold"
+            Padding="3"
             Text="URI" />
 
         <ComboBox Grid.Row="2"
               Grid.Column="1"
+              Height="25"
               ItemsSource="{Binding Path=AvailableHttpMethods}"
-              SelectedItem="{Binding Path=Method}"
-              HorizontalAlignment="Left"
-              VerticalAlignment="Center"
-              FontWeight="Bold"
-              FontSize="12"
-              FontFamily="Verdana">
+              SelectedItem="{Binding Path=Method}">
         </ComboBox>
 
         <TextBox Grid.Row="2"
@@ -116,7 +143,7 @@
 
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Path=Children}">
-                    <Grid>
+                    <Grid Background="{Binding Path=EditedFieldZoneBackground}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="5"/>
@@ -137,6 +164,7 @@
                                     <Setter Property="Margin" Value="2"/>
                                     <Setter Property="Padding" Value="3"/>
                                     <Setter Property="FontWeight" Value="DemiBold"/>
+                                    <Setter Property="Foreground" Value="Black"/>
                                 </Style>
                             </StackPanel.Resources>
                             <TextBlock Text="{Binding Path=KeyName}"/>
@@ -164,7 +192,7 @@
                             <!-- Buttons to Add Child / Delete Key -->
                             <Button Command="{Binding Path=ShowAddChildrenZone}"
                                     Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource VisibleIfFalseConverter}}"
-                                    Content="{Binding Path=KeyName}"
+                                    Content="New child"
                                     Name="ShowAddChildrenZoneButton"/>
                             <Button Command="{Binding Path=DeleteField}" 
                                     Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource VisibleIfFalseConverter}}"
@@ -174,7 +202,7 @@
                             <Button Command="{Binding Path=AddChildField}"
                                     Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource CollapsedIfFalseConverter}}"
                                     Content="Add field"/>
-                            <Button Command="{Binding Path=DiscardChildField}"
+                            <Button Command="{Binding Path=DiscardAddChildrenZone}"
                                     Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource CollapsedIfFalseConverter}}"
                                     Content="Discard field"/>
                         </StackPanel>
