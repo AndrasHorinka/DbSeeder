@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -24,7 +26,7 @@ namespace DbSeeder.WPF.ViewModels
 
             ShowAddChildrenZone = new RelayCommand(showAddChildrenZone);
             DiscardAddChildrenZone = new RelayCommand(discardAddChildrenZone);
-            AddChildField = new RelayCommand(addChilField);
+            AddChildField = new RelayCommand(addChildField);
             DeleteField = new RelayCommand(deleteField);
 
             #endregion
@@ -33,25 +35,22 @@ namespace DbSeeder.WPF.ViewModels
 
             Owner = owner;
 
-            Children = new ObservableCollection<JsonFieldViewModel>()
-            {
-                null
-            };
+            keyType = string.Empty;
+            keyName = "Default KeyName";
+            regex = string.Empty;
+            fieldType = string.Empty;
+
+            Children = new ObservableCollection<JsonFieldViewModel>();
 
             #endregion
 
             #region Initialize nonNullable Types
 
             ChildCounter = 0;
-            AddChildrenZoneIsVisible = false; // Change it to false
+            addChildrenZoneIsVisible = false;
             isVisible = true;
+            isUnique = false;
             editedFieldZoneBackground = new SolidColorBrush(Colors.White);
-
-            #endregion
-
-            #region Initialize Samples
-
-
 
             #endregion
         }
@@ -65,15 +64,30 @@ namespace DbSeeder.WPF.ViewModels
         /// </summary>
         internal JsonFieldViewModel Owner { get; set; }
 
+        private ObservableCollection<JsonFieldViewModel> children;
         /// <summary>
         /// Collection to store Child elements of given Field. Cannot be null (initialized in constructor) - but can store null - if no child added
         /// </summary>
-        public ObservableCollection<JsonFieldViewModel> Children { get; set; }
+        public ObservableCollection<JsonFieldViewModel> Children
+        {
+            get => children;
+            private set 
+            {
+                if (!CanExpand) return;
+
+                if (value is null) return;
+
+                if (value == children) return;
+
+                children = value;
+                PropertyChanged(this, new PropertyChangedEventArgs(nameof(Children)));
+            }
+        }
 
         /// <summary>
         /// Counter to store how many children are nested below
         /// </summary>
-        public int ChildCounter { get; private set; }
+        public int ChildCounter { get; internal set; }
 
         private string keyName;
         /// <summary>
@@ -191,7 +205,24 @@ namespace DbSeeder.WPF.ViewModels
         {
             get
             {
-                return Children?.Count(f => f != null) > 0;
+                return !keyType.Equals("Field", StringComparison.CurrentCultureIgnoreCase);
+            }
+        }
+
+        private JsonFieldViewModel child;
+        /// <summary>
+        /// Property to related information about a new Child
+        /// </summary>
+        public JsonFieldViewModel Child
+        {
+            get => child;
+            set
+            {
+                if (value is null) return;
+                if (value == child) return;
+
+                child = value;
+                PropertyChanged(this, new PropertyChangedEventArgs(nameof(Child)));
             }
         }
 
@@ -207,6 +238,7 @@ namespace DbSeeder.WPF.ViewModels
             ChildCounter++;
             if (Owner != null) await Task.Run(() => Owner.ChildAdded());
         }
+
 
         #endregion
 
@@ -270,7 +302,22 @@ namespace DbSeeder.WPF.ViewModels
         public ICommand ShowAddChildrenZone { get; set; }
         private void showAddChildrenZone()
         {
+            child = new JsonFieldViewModel()
+            {
+                Owner = this,
+            };
+
             AddChildrenZoneIsVisible = true;
+            if (Owner != null)
+            {
+                foreach (var sibling in Owner.Children)
+                {
+                    if (sibling is null) continue;
+
+                    if (sibling.Equals(this)) continue;
+                    sibling.AddChildrenZoneIsVisible = false;
+                }
+            }
         }
 
         /// <summary>
@@ -280,23 +327,20 @@ namespace DbSeeder.WPF.ViewModels
         private void discardAddChildrenZone()
         {
             AddChildrenZoneIsVisible = false;
-            ChildFieldName = null;
-            ChildRegex = null;
-            ChildIsUnique = false;
+            child = null;
         }
 
         /// <summary>
         /// Command that add a new field as child to the selected element
         /// </summary>
         public ICommand AddChildField { get; set; }
-        private void addChilField()
+        private void addChildField()
         {
             // should take an argument which is the owner field
-            JsonFieldViewModel newField = new JsonFieldViewModel()
-            {
-                Owner = this,
-            };
-
+            if (!ExtensionMethods.CreateDeepCopy(this, out JsonFieldViewModel result)) return; 
+            
+            Children.Add(result);
+            ChildAdded();
         }
 
         /// <summary>
@@ -308,30 +352,11 @@ namespace DbSeeder.WPF.ViewModels
             // should take an argument which field it is to be deleted
         }
 
-
-
-        /// <summary>
-        /// Property to store the name of the newField
-        /// </summary>
-        public string ChildFieldName { get; set; }
-
-        /// <summary>
-        /// Property to store the regular expression
-        /// </summary>
-        public string ChildRegex { get; set; }
-
-        /// <summary>
-        /// Property to store if value must be unique or not
-        /// </summary>
-        public bool ChildIsUnique { get; set; } = false;
-
-
-
         #endregion
 
         #region Sample Generation
 
-        internal async void GenerateSample(int index, int depth)
+        internal void GenerateSample(int index, int depth)
         {
             string[] keyTypes = { "Field", "Map", "Array" };
             string[] fieldTypes = { "string", "bool", "float", "int" };

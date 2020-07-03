@@ -191,11 +191,11 @@
 
                             <!-- Buttons to Add Child / Delete Key -->
                             <Button Command="{Binding Path=ShowAddChildrenZone}"
-                                    Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource VisibleIfFalseConverter}}"
+                                    Visibility="{Binding Path=CanExpand, Converter={StaticResource CollapsedIfFalseConverter}}"
                                     Content="New child"
                                     Name="ShowAddChildrenZoneButton"/>
                             <Button Command="{Binding Path=DeleteField}" 
-                                    Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource VisibleIfFalseConverter}}"
+                                    Visibility="{Binding Path=CanExpand, Converter={StaticResource CollapsedIfFalseConverter}}"
                                     Content="Delete field"/>
 
                             <!-- Buttons to Save new child / Discard new Child -->
@@ -214,8 +214,8 @@
                                     Grid.Column="0"
                                     Grid.ColumnSpan="2"
                                     Grid.RowSpan="2">
-                           
-                            <TextBox Text="{Binding Path=ChildFieldName}"
+
+                            <TextBox Text="{Binding Path=Child.KeyName, Mode=TwoWay}"
                                      TextAlignment ="Left"
                                      MaxWidth="300"
                                      Height="25"
@@ -298,12 +298,12 @@
                                         </Style.Triggers>
                                     </Style>
                                 </StackPanel.Resources>
-                                <CheckBox IsChecked="{Binding Path=ChildIsUnique}" 
+                                <CheckBox IsChecked="{Binding Path=Child.IsUnique}" 
                                           Content="Unique"/>
                                 <CheckBox x:Name="RegexCheckBox"
                                           Content="Regex"/>
                                 <!-- Regex Expression -->
-                                <TextBox Text="{Binding Path=ChildRegex}" 
+                                <TextBox Text="{Binding Path=Child.Regex}" 
                                          Name="RegexExpression"
                                          ToolTip="The regular expression to be used for value generation">
                                     <TextBox.Style>

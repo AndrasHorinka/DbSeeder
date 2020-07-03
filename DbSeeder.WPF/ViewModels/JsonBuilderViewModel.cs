@@ -197,7 +197,7 @@ namespace DbSeeder.WPF.ViewModels
 
                 JsonFieldViewModels.Add(field);
 
-                if (!(string.Equals(field.KeyType, "Field", StringComparison.OrdinalIgnoreCase)))
+                if (!(string.Equals(field.KeyType, "Field", StringComparison.CurrentCultureIgnoreCase)))
                 {
                     field.GenerateSample(i, 0);
                     continue;
