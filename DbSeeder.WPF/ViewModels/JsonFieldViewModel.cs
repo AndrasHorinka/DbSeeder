@@ -261,13 +261,27 @@ namespace DbSeeder.WPF.ViewModels
             }
         }
 
+        public bool NewChildButtonVisiblity
+        {
+            get
+            {
+                return CanExpand && !AddChildrenZoneIsVisible;
+            }
+        }
+
+
         private bool addChildrenZoneIsVisible;
         /// <summary>
         /// Property to flag if AddChildrenZone should be visible or not
         /// </summary>
         public bool AddChildrenZoneIsVisible
         {
-            get => addChildrenZoneIsVisible;
+            get
+            {
+                if (!CanExpand) return false;
+
+                return addChildrenZoneIsVisible;
+            }
             set
             {
                 if (value == addChildrenZoneIsVisible) return;
@@ -318,6 +332,8 @@ namespace DbSeeder.WPF.ViewModels
                     sibling.AddChildrenZoneIsVisible = false;
                 }
             }
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NewChildButtonVisiblity)));
         }
 
         /// <summary>
@@ -328,6 +344,8 @@ namespace DbSeeder.WPF.ViewModels
         {
             AddChildrenZoneIsVisible = false;
             child = null;
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NewChildButtonVisiblity)));
         }
 
         /// <summary>

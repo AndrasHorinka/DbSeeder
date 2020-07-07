@@ -191,13 +191,13 @@
 
                             <!-- Buttons to Add Child / Delete Key -->
                             <Button Command="{Binding Path=ShowAddChildrenZone}"
-                                    Visibility="{Binding Path=CanExpand, Converter={StaticResource CollapsedIfFalseConverter}}"
+                                    Visibility="{Binding Path=NewChildButtonVisiblity, Converter={StaticResource CollapsedIfFalseConverter}}"
                                     Content="New child"
                                     Name="ShowAddChildrenZoneButton"/>
                             <Button Command="{Binding Path=DeleteField}" 
-                                    Visibility="{Binding Path=CanExpand, Converter={StaticResource CollapsedIfFalseConverter}}"
+                                    Visibility="{Binding Path=NewChildButtonVisiblity, Converter={StaticResource CollapsedIfFalseConverter}}"
                                     Content="Delete field"/>
-
+                            
                             <!-- Buttons to Save new child / Discard new Child -->
                             <Button Command="{Binding Path=AddChildField}"
                                     Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource CollapsedIfFalseConverter}}"
