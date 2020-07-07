@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -36,7 +33,7 @@ namespace DbSeeder.WPF.ViewModels
             Owner = owner;
 
             keyType = string.Empty;
-            keyName = "Default KeyName";
+            keyName = string.Empty;
             regex = string.Empty;
             fieldType = string.Empty;
 
@@ -49,6 +46,7 @@ namespace DbSeeder.WPF.ViewModels
             ChildCounter = 0;
             addChildrenZoneIsVisible = false;
             isVisible = true;
+            isExpanded = false;
             isUnique = false;
             editedFieldZoneBackground = new SolidColorBrush(Colors.White);
 
@@ -198,6 +196,22 @@ namespace DbSeeder.WPF.ViewModels
             }
         }
 
+        private bool isExpanded;
+        /// <summary>
+        ///  Property to store if the given field should be expanded or not
+        /// </summary>
+        public bool IsExpanded
+        {
+            get => isExpanded;
+            set
+            {
+                if (isExpanded == value) return;
+
+                isExpanded = value;
+                PropertyChanged(this, new PropertyChangedEventArgs(nameof(IsExpanded)));
+            }
+        }
+
         /// <summary>
         /// Property to store if the item can be expanded, which is true if it has any children
         /// </summary>
@@ -239,7 +253,6 @@ namespace DbSeeder.WPF.ViewModels
             if (Owner != null) await Task.Run(() => Owner.ChildAdded());
         }
 
-
         #endregion
 
         #region AddChildrenUIControl
@@ -261,6 +274,9 @@ namespace DbSeeder.WPF.ViewModels
             }
         }
 
+        /// <summary>
+        /// Property to handle the visibility of Add New Child button
+        /// </summary>
         public bool NewChildButtonVisiblity
         {
             get
@@ -268,7 +284,6 @@ namespace DbSeeder.WPF.ViewModels
                 return CanExpand && !AddChildrenZoneIsVisible;
             }
         }
-
 
         private bool addChildrenZoneIsVisible;
         /// <summary>
@@ -302,7 +317,7 @@ namespace DbSeeder.WPF.ViewModels
 
         private void MarkFieldEdited()
         {
-            EditedFieldZoneBackground = new SolidColorBrush(Colors.Aqua);
+            EditedFieldZoneBackground = new SolidColorBrush(Colors.AntiqueWhite);
         }
 
         private void UnMarkFieldEdited()
@@ -316,7 +331,7 @@ namespace DbSeeder.WPF.ViewModels
         public ICommand ShowAddChildrenZone { get; set; }
         private void showAddChildrenZone()
         {
-            child = new JsonFieldViewModel()
+            Child = new JsonFieldViewModel()
             {
                 Owner = this,
             };
@@ -354,12 +369,18 @@ namespace DbSeeder.WPF.ViewModels
         public ICommand AddChildField { get; set; }
         private void addChildField()
         {
-            // should take an argument which is the owner field
-            if (!ExtensionMethods.CreateDeepCopy(this, out JsonFieldViewModel result)) return; 
+            if (Child is null)
+            {
+                discardAddChildrenZone();
+                return;
+            }
             
-            Children.Add(result);
+            Children.Add(Child);
             ChildAdded();
+            discardAddChildrenZone();
         }
+
+        public string testKey { get; set; } = string.Empty;
 
         /// <summary>
         /// Command that removes certain field and all of its children
