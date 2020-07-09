@@ -33,10 +33,8 @@
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="32"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -54,6 +52,8 @@
                 <Setter Property="FontSize" Value="12"/>
                 <Setter Property="FontFamily" Value="Verdana"/>
                 <Setter Property="Height" Value="25"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
             </Style>
             <Style TargetType="{x:Type ComboBox}">
                 <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -69,14 +69,14 @@
 
         <!-- Query Name -->
         <TextBlock
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.Column="0"
             FontWeight="Bold"
             Text="Name"/>
 
         <!-- Query Name -->
         <TextBox
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.Column="2"
             Grid.ColumnSpan="7"
             ToolTip="A name you can use for internal reference for the given query"
@@ -84,20 +84,20 @@
 
         <!-- Input fields : Line 1 -->
         <TextBlock 
-            Grid.Row="2"
+            Grid.Row="1"
             Grid.Column="0"
             FontWeight="Bold"
             Padding="3"
             Text="URI" />
 
-        <ComboBox Grid.Row="2"
+        <ComboBox Grid.Row="1"
               Grid.Column="1"
               Height="25"
               ItemsSource="{Binding Path=AvailableHttpMethods}"
               SelectedItem="{Binding Path=Method}">
         </ComboBox>
 
-        <TextBox Grid.Row="2"
+        <TextBox Grid.Row="1"
                  Grid.Column="2"
                  Grid.ColumnSpan="7"
                  Padding="10, 0"
@@ -107,7 +107,7 @@
                  ToolTip="The URI to be triggered"
                  Text="{Binding DefaultUri}"/>
 
-        <TextBlock Grid.Row="2"
+        <TextBlock Grid.Row="1"
                    Grid.Column="2"
                    Grid.ColumnSpan="7"
                    IsHitTestVisible="False" 
@@ -130,10 +130,11 @@
 
         <!-- List of Fields -->
         <TreeView ItemsSource="{Binding Path=JsonFieldViewModels}"                  
-                  Grid.Row="3"
+                  Grid.Row="2"
                   Grid.Column="0"
                   Padding="5 3"
                   BorderThickness="2"
+                  Height="370"
                   Grid.ColumnSpan="11">
             <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}">
@@ -147,7 +148,6 @@
                     <Grid Background="{Binding Path=EditedFieldZoneBackground}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="5"/>
                             <ColumnDefinition Width="200"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
@@ -172,12 +172,6 @@
                             <TextBlock Text="{Binding Path=KeyType}"/>
                         </StackPanel>
 
-                        <!-- Grid splitter --> 
-                        <GridSplitter Grid.Column="1" 
-                                      Grid.Row="0"  
-                                      Width="5"
-                                      HorizontalAlignment="Stretch"/>
-
                         <!-- The control for buttons -->
                         <StackPanel Grid.Column="2"
                                     Grid.Row="0"
@@ -196,7 +190,7 @@
                                     Content="New child"
                                     Name="ShowAddChildrenZoneButton"/>
                             <Button Command="{Binding Path=DeleteField}" 
-                                    Visibility="{Binding Path=NewChildButtonVisiblity, Converter={StaticResource CollapsedIfFalseConverter}}"
+                                    Visibility="{Binding Path=AddChildrenZoneIsVisible, Converter={StaticResource VisibleIfFalseConverter}}"
                                     Content="Delete field"/>
                             
                             <!-- Buttons to Save new child / Discard new Child -->

@@ -19,38 +19,27 @@ namespace DbSeeder.WPF.ViewModels
 
         public JsonFieldViewModel(JsonFieldViewModel owner = null)
         {
-            #region Initialize Commands
-
+            // Initialize Commands
             ShowAddChildrenZone = new RelayCommand(showAddChildrenZone);
             DiscardAddChildrenZone = new RelayCommand(discardAddChildrenZone);
             AddChildField = new RelayCommand(addChildField);
             DeleteField = new RelayCommand(deleteField);
 
-            #endregion
-
-            #region Initialize Nullable Types
-
-            Owner = owner;
-
+            // Initialize Nullable Types
             keyType = string.Empty;
             keyName = string.Empty;
             regex = string.Empty;
             fieldType = string.Empty;
-
+            Owner = owner;
             Children = new ObservableCollection<JsonFieldViewModel>();
 
-            #endregion
-
-            #region Initialize nonNullable Types
-
+            // Initialize nonNullable Types
             ChildCounter = 0;
             addChildrenZoneIsVisible = false;
             isVisible = true;
             isExpanded = false;
             isUnique = false;
             editedFieldZoneBackground = new SolidColorBrush(Colors.White);
-
-            #endregion
         }
 
         #endregion
@@ -253,6 +242,35 @@ namespace DbSeeder.WPF.ViewModels
             if (Owner != null) await Task.Run(() => Owner.ChildAdded());
         }
 
+        public void DeleteChild(JsonFieldViewModel child)
+        {
+            if (child is null) return;
+
+            if (Owner is null)
+            {
+                // Develop an observer to that will remove the element
+            }
+            else
+            {
+                // TODO: replace it with Observer method call
+                Owner.Children.Remove(child);
+            }
+        }
+
+        private bool IsFieldValid()
+        {
+            if (Child is null) return false;
+            if (string.IsNullOrWhiteSpace(KeyName)) return false;
+            if (string.IsNullOrWhiteSpace(KeyType)) return false;
+
+            if (KeyType.Equals("Field"))
+            {
+                if (string.IsNullOrWhiteSpace(FieldType)) return false;
+            }
+
+            return true;
+        }
+
         #endregion
 
         #region AddChildrenUIControl
@@ -315,16 +333,6 @@ namespace DbSeeder.WPF.ViewModels
             }
         }
 
-        private void MarkFieldEdited()
-        {
-            EditedFieldZoneBackground = new SolidColorBrush(Colors.AntiqueWhite);
-        }
-
-        private void UnMarkFieldEdited()
-        {
-            EditedFieldZoneBackground = new SolidColorBrush(Colors.White);
-        }
-
         /// <summary>
         /// Command that shows AddChildrenZone
         /// </summary>
@@ -369,18 +377,15 @@ namespace DbSeeder.WPF.ViewModels
         public ICommand AddChildField { get; set; }
         private void addChildField()
         {
-            if (Child is null)
+            if (IsFieldValid())
             {
-                discardAddChildrenZone();
-                return;
+                Children.Add(Child);
+                ChildAdded();
             }
             
-            Children.Add(Child);
-            ChildAdded();
             discardAddChildrenZone();
+            return;
         }
-
-        public string testKey { get; set; } = string.Empty;
 
         /// <summary>
         /// Command that removes certain field and all of its children
@@ -388,7 +393,18 @@ namespace DbSeeder.WPF.ViewModels
         public ICommand DeleteField { get; set; }
         private void deleteField()
         {
+            DeleteChild(this);
             // should take an argument which field it is to be deleted
+        }
+
+        private void MarkFieldEdited()
+        {
+            EditedFieldZoneBackground = new SolidColorBrush(Colors.AntiqueWhite);
+        }
+
+        private void UnMarkFieldEdited()
+        {
+            EditedFieldZoneBackground = new SolidColorBrush(Colors.White);
         }
 
         #endregion

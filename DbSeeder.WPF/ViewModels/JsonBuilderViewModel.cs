@@ -123,8 +123,6 @@ namespace DbSeeder.WPF.ViewModels
         {
             #region Initialize Commands
 
-            TestCommand = new RelayCommand(testCommand);
-
             #endregion
 
             #region Initialize NullableTypes
@@ -156,21 +154,6 @@ namespace DbSeeder.WPF.ViewModels
             jsonFields = new CollectionViewSource();
             jsonFields.Source = JsonFieldViewModels;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JsonField)));
-        }
-
-        public ICommand TestCommand;
-
-        private void testCommand()
-        {
-            TestBol = !TestBol;
-        }
-
-        private bool testBol = true;
-
-        public bool TestBol
-        {
-            get => testBol;
-            set => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TestBol)));
         }
 
         #endregion
