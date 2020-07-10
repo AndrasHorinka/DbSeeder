@@ -207,8 +207,7 @@
                             Converter={StaticResource CollapsedIfFalseConverter}}" 
                                     Grid.Row="1"
                                     Grid.Column="0"
-                                    Grid.ColumnSpan="2"
-                                    Grid.RowSpan="2">
+                                    Grid.ColumnSpan="2">
 
                             <TextBox Text="{Binding Path=Child.KeyName, Mode=TwoWay}"
                                      TextAlignment ="Left"

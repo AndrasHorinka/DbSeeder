@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Data;
-using System.Windows.Input;
-using DbSeeder.WPF.Services;
-using static System.DateTime;
+
+using DbSeeder.WPF.Delegates;
 
 namespace DbSeeder.WPF.ViewModels
 {
@@ -28,6 +24,11 @@ namespace DbSeeder.WPF.ViewModels
         #endregion
 
         #region Fields and Properties
+
+        private readonly JsonFieldDelegate DeleteFieldHandler;
+        private readonly JsonFieldDelegate CollapseFieldsHandler;
+        private readonly JsonFieldDelegate AddJsonFieldHandler;
+        private List<JsonFieldViewModel> AllJsonFields;
 
         private string queryName;
         /// <summary>
@@ -121,28 +122,21 @@ namespace DbSeeder.WPF.ViewModels
 
         public JsonBuilderViewModel()
         {
-            #region Initialize Commands
-
-            #endregion
-
-            #region Initialize NullableTypes
-
+            // Initialize NullableTypes
             jsonFieldViewModels = new ObservableCollection<JsonFieldViewModel>();
             ResetJsonField();
+            AllJsonFields = new List<JsonFieldViewModel>();
+            
+            // Delegates
+            DeleteFieldHandler = DeleteJsonField;
+            CollapseFieldsHandler = CollapseJsonField;
+            AddJsonFieldHandler = AddJsonField;
 
-            #endregion
-
-            #region Initialize nonNullable Types
-
+            // Initialize nonNullable Types
             method = HttpMethod.Post;
 
-            #endregion
-
-            #region Initialise Samples
-
+            // Initialise Samples
             GenerateSample();
-
-            #endregion
         }
 
         #endregion
@@ -172,13 +166,14 @@ namespace DbSeeder.WPF.ViewModels
 
             for (int i = 1; i < 10; i++)
             {
-                JsonFieldViewModel field = new JsonFieldViewModel(null)
+                JsonFieldViewModel field = new JsonFieldViewModel(CollapseFieldsHandler, DeleteFieldHandler, AddJsonFieldHandler, null, null)
                 {
                     KeyName = $"key lvl 1 {i}",
-                    KeyType = keyTypes[rnd.Next(3)]
+                    KeyType = keyTypes[rnd.Next(3)],
                 };
 
                 JsonFieldViewModels.Add(field);
+                AllJsonFields.Add(field);
 
                 if (!(string.Equals(field.KeyType, "Field", StringComparison.CurrentCultureIgnoreCase)))
                 {
@@ -203,6 +198,35 @@ namespace DbSeeder.WPF.ViewModels
 
         #endregion
 
-    }
+        #region Delegate Methods
 
+        public void DeleteJsonField(JsonFieldViewModel jsonField)
+        {
+            if (jsonField is null) throw new ArgumentNullException();
+
+            JsonFieldViewModels.Remove(jsonField);
+            AllJsonFields.Remove(jsonField);
+        }
+
+        public void CollapseJsonField(JsonFieldViewModel jsonField)
+        {
+            if (jsonField is null) throw new ArgumentNullException();
+
+            foreach (var field in AllJsonFields)
+            {
+                if (field == jsonField) continue;
+
+                field.AddChildrenZoneIsVisible = false;
+            }
+        }
+
+        public void AddJsonField(JsonFieldViewModel jsonField)
+        {
+            if (jsonField is null) throw new ArgumentNullException();
+
+            AllJsonFields.Add(jsonField);
+        }
+
+        #endregion
+    }
 }

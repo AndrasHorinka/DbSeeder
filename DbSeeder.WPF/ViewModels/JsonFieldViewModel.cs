@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
+using DbSeeder.WPF.Delegates;
 using DbSeeder.WPF.Services;
 
 namespace DbSeeder.WPF.ViewModels
@@ -17,30 +18,58 @@ namespace DbSeeder.WPF.ViewModels
 
         #region Constructor
 
-        public JsonFieldViewModel(JsonFieldViewModel owner = null)
+        public JsonFieldViewModel(JsonFieldDelegate collapseOtherFields, 
+            JsonFieldDelegate deleteJsonField, // this is for root fields and to remove Root View Model AllJson collection for collapsing
+            JsonFieldDelegate addJsonField,
+            JsonFieldDelegate deleteChildDelegate = null, // this is to clear the collection of Owner if owner is not null
+            JsonFieldViewModel owner = null) // this is for owner, only if it is not root
         {
-            // Initialize Commands
-            ShowAddChildrenZone = new RelayCommand(showAddChildrenZone);
-            DiscardAddChildrenZone = new RelayCommand(discardAddChildrenZone);
-            AddChildField = new RelayCommand(addChildField);
-            DeleteField = new RelayCommand(deleteField);
+            InitializeCommands();
+            InitializeNullableTypes(owner);
+            InitializeNonNullableTypes();
 
-            // Initialize Nullable Types
-            keyType = string.Empty;
-            keyName = string.Empty;
-            regex = string.Empty;
-            fieldType = string.Empty;
-            Owner = owner;
-            Children = new ObservableCollection<JsonFieldViewModel>();
-
-            // Initialize nonNullable Types
-            ChildCounter = 0;
-            addChildrenZoneIsVisible = false;
-            isVisible = true;
-            isExpanded = false;
-            isUnique = false;
-            editedFieldZoneBackground = new SolidColorBrush(Colors.White);
+            // Initialize delegates
+            InitializeDelegates(collapseOtherFields, deleteJsonField, addJsonField, deleteChildDelegate, owner);
         }
+
+        #endregion
+
+        #region Delegates
+
+        /// <summary>
+        /// Property to store the delegate to delete root fields
+        /// </summary>
+        public JsonFieldDelegate DeleteFieldFromRootCollection { get; private set; }
+
+        /// <summary>
+        /// Property to store the delegate to collapse all other fields
+        /// </summary>
+        public JsonFieldDelegate CollapseAllOtherFields { get; private set; }
+
+        /// <summary>
+        /// A property to store a delegate passed from Parent - to be called on Deletion of THIS
+        /// </summary>
+        public JsonFieldDelegate DelegateToClearParentCollection { get; private set; }
+
+        /// <summary>
+        /// A property to store a delegate to be passed to Children - so they can delete themselves from Parent's collection
+        /// </summary>
+        public JsonFieldDelegate DelegateForChildrenToClearCollection { get; set; }
+        /// <summary>
+        /// A method to be used for delegate initialization - to be passed to Children
+        /// </summary>
+        /// <param name="jsonField"></param>
+        private void DeleteJsonField(JsonFieldViewModel jsonField)
+        {
+            if (jsonField is null) throw new ArgumentNullException();
+
+            Children.Remove(jsonField);
+        }
+
+        /// <summary>
+        /// A property to store a delegate passed from Root - to be able to collect each JsonFields
+        /// </summary>
+        public JsonFieldDelegate AddJsonFieldDelegate { get; set; }
 
         #endregion
 
@@ -233,6 +262,55 @@ namespace DbSeeder.WPF.ViewModels
 
         #region Backend methods
 
+        private void InitializeCommands()
+        {
+            ShowAddChildrenZone = new RelayCommand(showAddChildrenZone);
+            DiscardAddChildrenZone = new RelayCommand(discardAddChildrenZone);
+            AddChildField = new RelayCommand(addChildField);
+            DeleteField = new RelayCommand(deleteField);
+        }
+
+        private void InitializeNullableTypes(JsonFieldViewModel owner)
+        {
+            keyType = string.Empty;
+            keyName = string.Empty;
+            regex = string.Empty;
+            fieldType = string.Empty;
+            Owner = owner;
+            Children = new ObservableCollection<JsonFieldViewModel>();
+        }
+
+        private void InitializeNonNullableTypes()
+        {
+            ChildCounter = 0;
+            addChildrenZoneIsVisible = false;
+            isVisible = true;
+            isExpanded = false;
+            isUnique = false;
+            editedFieldZoneBackground = new SolidColorBrush(Colors.White);
+        }
+
+        private void InitializeDelegates(JsonFieldDelegate collapseOtherFields, JsonFieldDelegate deleteJsonField, JsonFieldDelegate addJsonField, JsonFieldDelegate deleteChildDelegate, JsonFieldViewModel owner)
+        {
+            // Injected
+            if (deleteJsonField is null) throw new ArgumentNullException($"{nameof(DeleteFieldFromRootCollection)} delegate cannot be null");
+            DeleteFieldFromRootCollection = deleteJsonField;
+            if (collapseOtherFields is null) throw new ArgumentNullException($"{nameof(CollapseAllOtherFields)} delegate cannot be null");
+            CollapseAllOtherFields = collapseOtherFields;
+            if (addJsonField is null) throw new ArgumentNullException($"{nameof(AddJsonFieldDelegate)} delegate cannot be null");
+            AddJsonFieldDelegate = addJsonField;
+
+            // Local
+            DelegateForChildrenToClearCollection = DeleteJsonField;
+
+            if (owner != null)
+            {
+                if (deleteChildDelegate is null) throw new ArgumentNullException($"Root field of the Json needs to be passed with {nameof(JsonFieldDelegate)} delegate");
+
+                DelegateToClearParentCollection = deleteChildDelegate;
+            }
+        }
+
         /// <summary>
         /// Increase counter by one up until root
         /// </summary>
@@ -242,19 +320,23 @@ namespace DbSeeder.WPF.ViewModels
             if (Owner != null) await Task.Run(() => Owner.ChildAdded());
         }
 
-        public void DeleteChild(JsonFieldViewModel child)
+        /// <summary>
+        /// Method that deletes the given field of the JSON
+        /// </summary>
+        /// <param name="child">JsonFieldViewModel</param>
+        public void DeleteJson(JsonFieldViewModel child)
         {
             if (child is null) return;
 
-            if (Owner is null)
+            // Remove from Parent's collection
+            if (Owner != null)
             {
-                // Develop an observer to that will remove the element
+                DelegateToClearParentCollection(this);
             }
-            else
-            {
-                // TODO: replace it with Observer method call
-                Owner.Children.Remove(child);
-            }
+        
+            // Clear up root
+            if (DeleteFieldFromRootCollection is null) throw new InvalidOperationException($"Wanted to delete a root field but {nameof(DeleteFieldFromRootCollection)} delegate is not initialized ");
+            DeleteFieldFromRootCollection(this);
         }
 
         private bool IsFieldValid()
@@ -339,22 +421,10 @@ namespace DbSeeder.WPF.ViewModels
         public ICommand ShowAddChildrenZone { get; set; }
         private void showAddChildrenZone()
         {
-            Child = new JsonFieldViewModel()
-            {
-                Owner = this,
-            };
+            Child = new JsonFieldViewModel(CollapseAllOtherFields, DeleteFieldFromRootCollection, AddJsonFieldDelegate, DelegateForChildrenToClearCollection, this);
 
             AddChildrenZoneIsVisible = true;
-            if (Owner != null)
-            {
-                foreach (var sibling in Owner.Children)
-                {
-                    if (sibling is null) continue;
-
-                    if (sibling.Equals(this)) continue;
-                    sibling.AddChildrenZoneIsVisible = false;
-                }
-            }
+            CollapseAllOtherFields(this);
 
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NewChildButtonVisiblity)));
         }
@@ -379,10 +449,12 @@ namespace DbSeeder.WPF.ViewModels
         {
             if (IsFieldValid())
             {
+                Child.Owner = this;
                 Children.Add(Child);
                 ChildAdded();
+                AddJsonFieldDelegate(Child);
             }
-            
+
             discardAddChildrenZone();
             return;
         }
@@ -393,8 +465,7 @@ namespace DbSeeder.WPF.ViewModels
         public ICommand DeleteField { get; set; }
         private void deleteField()
         {
-            DeleteChild(this);
-            // should take an argument which field it is to be deleted
+            DeleteJson(this);
         }
 
         private void MarkFieldEdited()
@@ -425,13 +496,14 @@ namespace DbSeeder.WPF.ViewModels
             {
                 keyType = depth <= 4 ? keyTypes[rnd.Next(3)] : "Field";
 
-                JsonFieldViewModel field = new JsonFieldViewModel(this)
+                JsonFieldViewModel field = new JsonFieldViewModel(CollapseAllOtherFields, DeleteFieldFromRootCollection, AddJsonFieldDelegate, DelegateForChildrenToClearCollection, this)
                 {
                     KeyName = $"key lvl {index} - {index*10+i}",
                     KeyType = keyType
                 };
 
                 Children.Add(field);
+                AddJsonFieldDelegate(field);
 
                 if (!(string.Equals(field.KeyType, "Field", StringComparison.OrdinalIgnoreCase)))
                 {
