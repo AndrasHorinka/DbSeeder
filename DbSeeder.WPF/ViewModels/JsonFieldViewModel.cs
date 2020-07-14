@@ -342,12 +342,12 @@ namespace DbSeeder.WPF.ViewModels
         private bool IsFieldValid()
         {
             if (Child is null) return false;
-            if (string.IsNullOrWhiteSpace(KeyName)) return false;
-            if (string.IsNullOrWhiteSpace(KeyType)) return false;
+            if (string.IsNullOrWhiteSpace(Child.KeyName)) return false;
+            if (string.IsNullOrWhiteSpace(Child.KeyType)) return false;
 
-            if (KeyType.Equals("Field"))
+            if (Child.KeyType.Equals("Field"))
             {
-                if (string.IsNullOrWhiteSpace(FieldType)) return false;
+                if (string.IsNullOrWhiteSpace(Child.FieldType)) return false;
             }
 
             return true;
@@ -509,6 +509,7 @@ namespace DbSeeder.WPF.ViewModels
                 {
                     if (depth <= 4)
                     {
+                        //await Task.Run(() => field.GenerateSample(i, ++depth));
                         field.GenerateSample(i, ++depth);
                     }
                     continue;

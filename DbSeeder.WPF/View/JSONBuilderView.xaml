@@ -13,6 +13,7 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="CollapsedIfFalseConverter" />
         <converters:VisibleIfFalseConverter x:Key="VisibleIfFalseConverter"/>
+        <converters:RadioButtonContentToStringConverter x:Key="GetCheckedRadioButtonConverter"/>
 
     </Window.Resources>
     <Grid >
@@ -226,6 +227,9 @@
                                         <Setter Property="BorderThickness" Value="2"/>
                                         <Setter Property="Grid.ColumnSpan" Value="2"/>
                                     </Style>
+                                    <sys:String x:Key="Field">Field</sys:String>
+                                    <sys:String x:Key="Map">Map</sys:String>
+                                    <sys:String x:Key="Array">Array</sys:String>
                                 </StackPanel.Resources>
                                 <TextBlock Text="Type"
                                            FontWeight="Bold"/>
@@ -233,11 +237,14 @@
                                 <!-- KeyType selector -->
                                 <RadioButton GroupName="KeySelectors"
                                              x:Name="FieldTypeSelected"
-                                             Content="Field"/>
+                                             Content="Field"
+                                             IsChecked="{Binding Child.KeyType, Converter={StaticResource GetCheckedRadioButtonConverter}, ConverterParameter={StaticResource Field}}"/>
                                 <RadioButton GroupName="KeySelectors"
-                                             Content="Map"/>
+                                             Content="Map"
+                                             IsChecked="{Binding Child.KeyType, Converter={StaticResource GetCheckedRadioButtonConverter}, ConverterParameter={StaticResource Map}}"/>
                                 <RadioButton GroupName="KeySelectors"
-                                             Content="Array"/>
+                                             Content="Array"
+                                             IsChecked="{Binding Child.KeyType, Converter={StaticResource GetCheckedRadioButtonConverter}, ConverterParameter={StaticResource Array}}"/>
                             </StackPanel>
 
                             <!-- Field Type selectors -->
@@ -254,6 +261,10 @@
                                     </Style>
                                 </StackPanel.Style>
                                 <StackPanel.Resources>
+                                    <sys:String x:Key="String">String</sys:String>
+                                    <sys:String x:Key="Boolean">Bool</sys:String>
+                                    <sys:String x:Key="Integer">Int</sys:String>
+                                    <sys:String x:Key="Float">Float</sys:String>
                                     <Style TargetType="{x:Type RadioButton}">
                                         <Setter Property="IsChecked" Value="False"/>
                                         <Setter Property="Margin" Value="10 5"/>
@@ -265,13 +276,17 @@
                                 </StackPanel.Resources>
                                 <!-- Type Selectors if key is a field -->
                                 <RadioButton GroupName="FieldTypeSelectors"
-                                             Content="String"/>
+                                             Content="String"
+                                             IsChecked="{Binding Child.FieldType, Converter={StaticResource GetCheckedRadioButtonConverter}, ConverterParameter={StaticResource String}}"/>
                                 <RadioButton GroupName="FieldTypeSelectors"
-                                             Content="Boolean"/>
+                                             Content="Boolean"
+                                             IsChecked="{Binding Child.FieldType, Converter={StaticResource GetCheckedRadioButtonConverter}, ConverterParameter={StaticResource Boolean}}"/>
                                 <RadioButton GroupName="FieldTypeSelectors"
-                                             Content="Integer"/>
+                                             Content="Integer"
+                                             IsChecked="{Binding Child.FieldType, Converter={StaticResource GetCheckedRadioButtonConverter}, ConverterParameter={StaticResource Integer}}"/>
                                 <RadioButton GroupName="FieldTypeSelectors"
-                                             Content="Float"/>
+                                             Content="Float"
+                                             IsChecked="{Binding Child.FieldType, Converter={StaticResource GetCheckedRadioButtonConverter}, ConverterParameter={StaticResource Float}}"/>
                             </StackPanel>
 
                             <!-- Checkboxes for Unique and Regex -->

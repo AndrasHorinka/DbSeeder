@@ -177,6 +177,7 @@ namespace DbSeeder.WPF.ViewModels
 
                 if (!(string.Equals(field.KeyType, "Field", StringComparison.CurrentCultureIgnoreCase)))
                 {
+                    //await Task.Run(() => field.GenerateSample(i, 0));
                     field.GenerateSample(i, 0);
                     continue;
                 }
